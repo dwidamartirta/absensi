@@ -28,9 +28,15 @@
             type="text"
             placeholder="123456 atau email@perusahaan.com"
             required
-            class="input-base pl-11"
+            class="input-base !pl-11"
           />
         </div>
+      </div>
+
+      <!-- Error Message -->
+      <div v-if="errorMessage" class="alert alert-error">
+        <AlertCircle :size="16" class="shrink-0 mt-0.5" />
+        <p class="text-[12px] font-medium leading-relaxed">{{ errorMessage }}</p>
       </div>
 
       <button
@@ -55,26 +61,42 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, KeyRound, Mail } from 'lucide-vue-next'
+import { ArrowLeft, KeyRound, Mail, AlertCircle } from 'lucide-vue-next'
+import { forgotPassword } from '../api/auth'
 
 const router = useRouter()
 const isLoading = ref(false)
 const accountInput = ref('')
+const errorMessage = ref('')
 
-const handleResetPassword = () => {
+const handleResetPassword = async () => {
+  if (isLoading.value) return
   isLoading.value = true
-  setTimeout(() => {
-    isLoading.value = false
+  errorMessage.value = ''
+
+  try {
+    const response = await forgotPassword(accountInput.value)
+    
     router.push({
       path: '/feedback',
       query: {
         status: 'success',
         title: 'Cek Email Anda',
-        message: `Kami telah mengirimkan instruksi pemulihan kata sandi ke akun terkait (${accountInput.value}). Silakan periksa kotak masuk atau folder spam Anda.`,
+        message: response.data.message || `Kami telah mengirimkan instruksi pemulihan kata sandi ke email terdaftar. Silakan periksa kotak masuk atau folder spam Anda.`,
         btn: 'Kembali ke Login',
         redirect: '/login'
       }
     })
-  }, 1500)
+  } catch (err: any) {
+    let msg = 'Gagal memproses permintaan reset kata sandi.'
+    if (err.response && err.response.data) {
+      msg = err.response.data.message || msg
+    } else if (err.request) {
+      msg = 'Tidak dapat terhubung ke server. Periksa koneksi Anda.'
+    }
+    errorMessage.value = msg
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>

@@ -76,3 +76,16 @@ export const getMe = () => {
 export const refreshToken = () => {
   return api.post<ApiResponse<LoginData>>('/auth/refresh')
 }
+
+/**
+ * Lupa Kata Sandi
+ * POST /api/v1/auth/forgot-password
+ * Request: { email_or_nik: string }
+ * Response: { success, message }
+ */
+export const forgotPassword = (emailOrNik: string) => {
+  return api.post<ApiResponse<{ email: string }>>('/auth/forgot-password', {
+    email_or_nik: emailOrNik
+  })
+}
+
