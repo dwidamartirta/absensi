@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Step Timeline</title>
+    <style>
+        :root {
+            --primary-color: #8A0032;
+            /* Maroon/Burgundy shade from image */
+            --text-dark: #2C3E50;
+            --text-muted: #555;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: #ffffff;
+            color: var(--text-dark);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .timeline-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 60px 0;
+            position: relative;
+        }
+
+        /* Desktop Grid Layout */
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 150px);
+            justify-content: space-between;
+            position: relative;
+            gap: 20px;
+        }
+
+        /* SVG Connecting Line for Desktop */
+        .timeline-svg-line {
+            position: absolute;
+            top: 25px;
+            left: 75px;
+            width: calc(100% - 150px);
+            height: 230px;
+            fill: none;
+            stroke: var(--primary-color);
+            stroke-width: 2;
+            stroke-dasharray: 4 4;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* Timeline Card Structure */
+        .step-card {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        /* Zig-Zag Positioning for Desktop */
+        /* Steps 2 and 4 are pushed down */
+        .step-card:nth-child(even) {
+            transform: translateY(200px);
+        }
+
+        /* Ribbon / Number Styling */
+        .badge-container {
+            position: relative;
+            width: 70px;
+            height: 70px;
+            margin-bottom: 20px;
+        }
+
+        .ribbon {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80%;
+            background-color: var(--primary-color);
+        }
+
+        /* Creates the sharp triangle cutout at the bottom of the ribbon */
+        .ribbon::after {
+            content: '';
+            position: absolute;
+            bottom: -14px;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 35px solid transparent;
+            border-right: 35px solid transparent;
+            border-top: 15px solid var(--primary-color);
+        }
+
+        .step-number {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: white;
+            z-index: 3;
+            line-height: 1;
+            /* Outline effect to mimic the image style */
+            text-shadow:
+                -1px -1px 0 var(--primary-color),
+                1px -1px 0 var(--primary-color),
+                -1px 1px 0 var(--primary-color),
+                1px 1px 0 var(--primary-color),
+                -3px 3px 0px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Typography */
+        .step-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 12px;
+            min-height: 44px;
+            /* Keeps heights consistent */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step-desc {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* --- Responsive Breakpoint (Tablets & Mobile) --- */
+        <blade media|%20(max-width%3A%20992px)%20%7B%0D>.timeline-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 50px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Disable the desktop SVG background line */
+        .timeline-svg-line {
+            display: none;
+        }
+
+        /* Reset the zig-zag alignment to a straight vertical line */
+        .step-card:nth-child(even) {
+            transform: translateY(0);
+        }
+
+        .step-card {
+            flex-direction: row;
+            text-align: left;
+            align-items: flex-start;
+            background: #fdfdfd;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .badge-container {
+            margin-bottom: 0;
+            margin-right: 25px;
+            flex-shrink: 0;
+        }
+
+        .step-title {
+            min-height: auto;
+            justify-content: flex-start;
+            margin-bottom: 6px;
+        }
+
+        /* Vertical connecting line indicator for mobile */
+        .step-card:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 53px;
+            top: 80px;
+            width: 2px;
+            height: 50px;
+            border-left: 2px dashed var(--primary-color);
+        }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="timeline-container">
+        <!-- SVG Layout handles the accurate up-and-down connecting line on desktop -->
+        <svg class="timeline-svg-line" viewBox="0 0 1050 230" preserveAspectRatio="none">
+            <path d="M 0,0 L 225,0 L 225,200 L 450,200 L 450,0 L 675,0 L 675,200 L 900,200 L 900,0 L 1050,0" />
+        </svg>
+
+        <div class="timeline-grid">
+            <!-- Step 1 -->
+            <div class="step-card">
+                <div class="badge-container">
+                    <div class="ribbon"></div>
+                    <div class="step-number">01</div>
+                </div>
+                <div>
+                    <h3 class="step-title">Contact Invest Qatar</h3>
+                    <p class="step-desc">Learn if Qatar is the right place for your project and explore what the country
+                        has to offer</p>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step-card">
+                <div class="badge-container">
+                    <div class="ribbon"></div>
+                    <div class="step-number">02</div>
+                </div>
+                <div>
+                    <h3 class="step-title">Build your case</h3>
+                    <p class="step-desc">Learn about licensing options, connect with licensing platforms and choose your
+                        business structure</p>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step-card">
+                <div class="badge-container">
+                    <div class="ribbon"></div>
+                    <div class="step-number">03</div>
+                </div>
+                <div>
+                    <h3 class="step-title">Register your company</h3>
+                    <p class="step-desc">Submit your application to the licensing platforms that best match your need
+                        and get the needed approvals</p>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step-card">
+                <div class="badge-container">
+                    <div class="ribbon"></div>
+                    <div class="step-number">04</div>
+                </div>
+                <div>
+                    <h3 class="step-title">Start your operations</h3>
+                    <p class="step-desc">Receive the necessary support to set-up your office in Qatar and kick-off your
+                        operations</p>
+                </div>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="step-card">
+                <div class="badge-container">
+                    <div class="ribbon"></div>
+                    <div class="step-number">05</div>
+                </div>
+                <div>
+                    <h3 class="step-title">Grow your business</h3>
+                    <p class="step-desc">Connect with the Qatar investors network, find partners and discover new
+                        opportunities</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

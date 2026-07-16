@@ -1,0 +1,17 @@
+{
+  "name": "DDT APP - PT. Dwi Damar Tirta",
+  "short_name": "DDT APP",
+  "description": "Aplikasi Absensi PT. Dwi Damar Tirta",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/img/logo dwi damar tirta.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}
