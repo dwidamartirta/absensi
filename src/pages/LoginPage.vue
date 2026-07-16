@@ -27,7 +27,7 @@
               type="email"
               placeholder="nama@perusahaan.com"
               autocomplete="email"
-              class="input-base pl-11"
+              class="input-base !pl-11"
             />
           </div>
         </div>
@@ -49,7 +49,7 @@
               :type="showPassword ? 'text' : 'password'"
               placeholder="Kata sandi Anda"
               autocomplete="current-password"
-              class="input-base pl-11 pr-12"
+              class="input-base !pl-11 !pr-12"
             />
             <button
               type="button"
