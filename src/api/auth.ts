@@ -26,6 +26,8 @@ export interface AuthUser {
       radius: number
     }[]
   }
+  roles_list?: string[]
+  permissions_list?: string[]
 }
 
 // Wrapper response dari backend Laravel

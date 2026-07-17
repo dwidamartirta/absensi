@@ -135,7 +135,37 @@ const router = createRouter({
         path: '/feedback',
         name: 'Feedback',
         component: FeedbackPage,
-        meta: { hideBottomNav: true } // Opsional: Jika Anda mengatur agar navbar sembunyi
+        meta: { hideBottomNav: true }
+    },
+    {
+      path: '/gudang',
+      name: 'gudang',
+      component: () => import('../pages/WarehousePage.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/gudang/masuk',
+      name: 'gudang-masuk',
+      component: () => import('../pages/WarehouseInPage.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/gudang/keluar',
+      name: 'gudang-keluar',
+      component: () => import('../pages/WarehouseOutPage.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/gudang/masuk/edit/:id',
+      name: 'gudang-masuk-edit',
+      component: () => import('../pages/WarehouseInEditPage.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/gudang/keluar/edit/:id',
+      name: 'gudang-keluar-edit',
+      component: () => import('../pages/WarehouseOutEditPage.vue'),
+      meta: { requiresAuth: true }
     }
     
   ],

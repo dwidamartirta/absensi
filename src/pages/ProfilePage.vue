@@ -147,7 +147,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { UserRound, CheckCircle2, Mail, Phone, MapPin, ChevronRight, LogOut, User, Lock, FileText, Users } from 'lucide-vue-next'
+import { UserRound, CheckCircle2, Mail, Phone, MapPin, ChevronRight, LogOut, User, Lock, FileText, Users, Package } from 'lucide-vue-next'
 import BottomNav from '../components/BottomNav.vue'
 import { useAuthStore } from '../stores/authStore'
 import { getProfile } from '../api/profile'
@@ -167,12 +167,25 @@ const inisial = computed(() => {
 })
 const jabatan = computed(() => profile.value?.position?.name || '')
 
-const menuItems = [
-  { label: 'Edit Profil', path: '/edit-profil', icon: User, iconClass: 'icon-badge-blue' },
-  { label: 'Keamanan & Kata Sandi', path: '/ganti-password', icon: Lock, iconClass: 'icon-badge-amber' },
-  { label: 'Pengajuan Ketidakhadiran', path: '/ketidakhadiran', icon: FileText, iconClass: 'icon-badge-teal' },
-  { label: 'Karyawan Tidak Masuk', path: '/karyawan-tidak-masuk', icon: Users, iconClass: 'icon-badge-rose' },
-]
+const menuItems = computed(() => {
+  const items = [
+    { label: 'Edit Profil', path: '/edit-profil', icon: User, iconClass: 'icon-badge-blue' },
+    { label: 'Keamanan & Kata Sandi', path: '/ganti-password', icon: Lock, iconClass: 'icon-badge-amber' },
+    { label: 'Pengajuan Ketidakhadiran', path: '/ketidakhadiran', icon: FileText, iconClass: 'icon-badge-teal' },
+    { label: 'Karyawan Tidak Masuk', path: '/karyawan-tidak-masuk', icon: Users, iconClass: 'icon-badge-rose' },
+  ]
+  
+  if (authStore.user?.permissions_list?.includes('warehouse.view')) {
+    items.push({
+      label: 'Limbah Gudang',
+      path: '/gudang',
+      icon: Package,
+      iconClass: 'icon-badge-blue'
+    })
+  }
+  
+  return items
+})
 
 onMounted(async () => {
   isLoading.value = true

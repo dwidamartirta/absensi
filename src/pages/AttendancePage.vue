@@ -21,6 +21,25 @@
         </button>
       </header>
 
+      <!-- Gudang Shortcut (Hanya untuk yang punya hak akses) -->
+      <section v-if="authStore.user?.permissions_list?.includes('warehouse.view')" class="mb-5">
+        <button
+          @click="$router.push('/gudang')"
+          class="flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 p-4 text-white shadow-lg shadow-emerald-100 transition-all active:scale-[0.98]"
+        >
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
+              <Package :size="20" class="text-white" />
+            </div>
+            <div class="text-left">
+              <h4 class="text-xs font-black tracking-wide text-white uppercase">LIMBAH MASUK & KELUAR</h4>
+              <p class="text-[9px] font-bold text-white/80 uppercase mt-0.5">Catat Limbah Masuk & Keluar Gudang</p>
+            </div>
+          </div>
+          <ChevronRight :size="16" class="text-white/80" />
+        </button>
+      </section>
+
       <!-- Main Attendance Card -->
       <section class="card-glass relative overflow-hidden p-5 mb-5">
         <!-- Decorative blobs -->
@@ -284,7 +303,7 @@ import BottomNav from '../components/BottomNav.vue'
 import { computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import {
   FileText, X, MapPin, ExternalLink, Fingerprint,
-  CalendarCheck, Clock, LogOut, ChevronRight, CheckCircle2, UserRound
+  CalendarCheck, Clock, LogOut, ChevronRight, CheckCircle2, UserRound, Package
 } from 'lucide-vue-next'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
