@@ -94,7 +94,6 @@ const isCalibrating = ref(false)
 const sheetCollapsed = ref(false)
 
 let userLat = 0, userLng = 0
-let lastSuspicionScore = 0
 let map: L.Map | null = null
 let userMarker: L.Marker | null = null
 let watchId: number | null = null
@@ -108,7 +107,7 @@ onMounted(async () => {
   timer = setInterval(() => waktuSekarang.value = new Date(), 1000)
 
   // PARALEL: Fetch lokasi kantor + GPS secara bersamaan
-  const [locationsResult] = await Promise.allSettled([
+  await Promise.allSettled([
     getLocations().then(res => {
       if (res.data.success && res.data.data) {
         daftarKantor.value = res.data.data.map(loc => ({
@@ -163,7 +162,6 @@ const startGPSWatch = () => {
 
       // Quick audit — single measurement, sangat cepat
       const audit = runQuickAudit(measurement)
-      lastSuspicionScore = audit.suspicionScore
 
       if (!audit.isValid) {
         securityError.value = audit.reason || 'Sensor GPS terindikasi tidak valid.'
@@ -291,7 +289,6 @@ const recalibrateLocation = () => {
       }
 
       const audit = runQuickAudit(measurement)
-      lastSuspicionScore = audit.suspicionScore
 
       if (!audit.isValid) {
         securityError.value = audit.reason || 'Sensor GPS terindikasi tidak valid.'

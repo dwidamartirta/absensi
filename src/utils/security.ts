@@ -146,7 +146,7 @@ export const analyzeGPSPerformance = (
 export const runQuickAudit = (m: GPSMeasurement): SecurityStatus => {
   const webdriverDetected = isAutomationDetected();
   const timeSync = checkTimeTampering();
-  const { score, flags } = calculateSuspicionScore(m);
+  const { score } = calculateSuspicionScore(m);
 
   // Hard blocks: automation and time tampering always block
   if (webdriverDetected) {

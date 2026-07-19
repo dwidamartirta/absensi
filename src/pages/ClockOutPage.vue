@@ -95,7 +95,6 @@ const isCalibrating = ref(false)
 const sheetCollapsed = ref(false)
 
 let userLat = 0, userLng = 0
-let lastSuspicionScore = 0
 let map: any
 let userMarker: any
 let watchId: number | null = null
@@ -161,7 +160,6 @@ const startGPSWatch = () => {
 
       // Quick audit — single measurement
       const audit = runQuickAudit(measurement)
-      lastSuspicionScore = audit.suspicionScore
 
       if (!audit.isValid) {
         securityError.value = audit.reason || 'Sensor GPS terindikasi tidak valid.'
@@ -276,7 +274,6 @@ const recalibrateLocation = () => {
       }
 
       const audit = runQuickAudit(measurement)
-      lastSuspicionScore = audit.suspicionScore
 
       if (!audit.isValid) {
         securityError.value = audit.reason || 'Sensor GPS terindikasi tidak valid.'
