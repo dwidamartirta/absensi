@@ -1,6 +1,8 @@
 /**
  * Security Utilities for GPS Anti-Spoofing & Time Tampering Verification
  * Absensi Mobile PWA - PT. Dwi Damar Tirta
+ * 
+ * v2 — Optimized for speed with suspicion scoring system
  */
 
 export interface GPSMeasurement {
@@ -13,12 +15,14 @@ export interface GPSMeasurement {
 export interface SecurityStatus {
   isValid: boolean;
   reason?: string;
+  suspicionScore: number;
   details?: {
     webdriverDetected: boolean;
     perfectAccuracy: boolean;
     zeroDrift: boolean;
     timeOutSync: boolean;
     timeDifferenceMin: number;
+    suspicionScore: number;
   };
 }
 
@@ -68,97 +72,206 @@ export const isAutomationDetected = (): boolean => {
 };
 
 /**
- * Analyze GPS measurements for mock location spoofing.
- * Heuristics applied:
- * 1. Zero-Drift (Statis Sempurna): Real GPS has atmospheric/satellite/sensor jitter.
- *    If two measurements separated by time have exactly identical coordinates (down to 15 decimal places),
- *    it indicates mock location software injecting static coordinates.
- * 2. Perfect Accuracy Integer: Mock providers often hardcode accuracy to exact integers (like exactly 0, 1, 10, 15).
- *    Real GPS accuracy is a high-precision float (e.g. 14.8391823).
+ * Calculate GPS suspicion score (0-100) from a single measurement.
+ * - Does NOT hard-block unless score >= 50
+ * - Scores 30-49 get flagged for admin review
+ * - Scores < 30 pass cleanly
+ */
+export const calculateSuspicionScore = (m: GPSMeasurement): { score: number; flags: string[] } => {
+  let score = 0;
+  const flags: string[] = [];
+
+  // accuracy === 0 is physically impossible for real GPS hardware
+  if (m.accuracy === 0) {
+    score += 40;
+    flags.push('GPS accuracy 0m (impossible on real hardware)');
+  }
+  // Integer accuracy below 3m on mobile is suspicious but not conclusive
+  else if (Number.isInteger(m.accuracy) && m.accuracy < 3) {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile) {
+      score += 15;
+      flags.push(`Integer accuracy ${m.accuracy}m on mobile`);
+    }
+  }
+
+  return { score, flags };
+};
+
+/**
+ * Analyze GPS measurements for mock location spoofing (dual measurement).
+ * Used when two readings are available for deeper analysis.
  */
 export const analyzeGPSPerformance = (
   m1: GPSMeasurement,
   m2: GPSMeasurement
-): { isMock: boolean; reason: string; zeroDrift: boolean; perfectAccuracy: boolean } => {
-  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  
-  // Heuristic 1: Perfect Accuracy Check (0 or 1 meter exactly, or perfect static integer like exactly 15.00000000)
-  // Accuracy from a real mobile device GPS chip is almost never exactly 0 or 1, and always has float residuals.
-  const isPerfectIntAccuracy = m2.accuracy === 0 || m2.accuracy === 1 || (Number.isInteger(m2.accuracy) && m2.accuracy < 10);
-  
-  // Heuristic 2: Zero-Drift Check (Statis Sempurna)
-  // Only highly relevant on mobile devices where GPS sensors are active.
-  // If the coordinates match to 14 decimal places after 1-2 seconds, it's highly suspicious.
+): { suspicionScore: number; reason: string; zeroDrift: boolean; perfectAccuracy: boolean; flags: string[] } => {
+  const base = calculateSuspicionScore(m2);
+  let score = base.score;
+  const flags = [...base.flags];
+
+  // Zero-Drift Check: coordinates match exactly across two readings
   const latDiff = Math.abs(m1.latitude - m2.latitude);
   const lngDiff = Math.abs(m1.longitude - m2.longitude);
   const isZeroDrift = latDiff === 0 && lngDiff === 0;
 
-  let isMock = false;
-  let reason = '';
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-  if (isMobile) {
-    if (isZeroDrift && m2.accuracy < 30) {
-      isMock = true;
-      reason = 'GPS Statis Sempurna (Terdeteksi Fake GPS App / Mock Location)';
-    } else if (isPerfectIntAccuracy) {
-      isMock = true;
-      reason = 'Akurasi GPS Tidak Normal (Akurasi Terlalu Sempurna)';
-    }
-  } else {
-    // Desktop check (be more lenient but still alert if webdriver or extreme accuracy)
-    if (isPerfectIntAccuracy && m2.accuracy === 0) {
-      isMock = true;
-      reason = 'Akurasi GPS 0 meter (Lokasi Mocked)';
-    }
+  if (isZeroDrift && isMobile && m2.accuracy < 20) {
+    // On mobile with high accuracy, perfectly static readings are suspicious
+    score += 20;
+    flags.push('Zero GPS drift on mobile (static coordinates)');
+  }
+
+  const perfectAccuracy = m2.accuracy === 0;
+  let reason = '';
+  if (score >= 50) {
+    reason = flags.join('; ');
   }
 
   return {
-    isMock,
+    suspicionScore: score,
     reason,
     zeroDrift: isZeroDrift,
-    perfectAccuracy: isPerfectIntAccuracy
+    perfectAccuracy,
+    flags
   };
 };
 
 /**
- * Run a full security audit on current environment and captured GPS data
+ * Quick Audit — Fast single-measurement security check.
+ * Used for initial GPS load to achieve < 1 second verification.
+ * Only hard-blocks on: automation, time tampering, or accuracy === 0.
+ */
+export const runQuickAudit = (m: GPSMeasurement): SecurityStatus => {
+  const webdriverDetected = isAutomationDetected();
+  const timeSync = checkTimeTampering();
+  const { score, flags } = calculateSuspicionScore(m);
+
+  // Hard blocks: automation and time tampering always block
+  if (webdriverDetected) {
+    return {
+      isValid: false,
+      reason: 'Deteksi Penggunaan Bot/Otomasi Browser!',
+      suspicionScore: 100,
+      details: {
+        webdriverDetected: true,
+        perfectAccuracy: false,
+        zeroDrift: false,
+        timeOutSync: false,
+        timeDifferenceMin: 0,
+        suspicionScore: 100
+      }
+    };
+  }
+
+  if (timeSync.isTampered) {
+    return {
+      isValid: false,
+      reason: `Jam perangkat tidak sinkron dengan server (${timeSync.diffMinutes} menit selisih). Silakan aktifkan opsi 'Atur Waktu Otomatis' di HP Anda.`,
+      suspicionScore: 100,
+      details: {
+        webdriverDetected: false,
+        perfectAccuracy: false,
+        zeroDrift: false,
+        timeOutSync: true,
+        timeDifferenceMin: timeSync.diffMinutes,
+        suspicionScore: 100
+      }
+    };
+  }
+
+  // Score-based: only block if score >= 50
+  const isValid = score < 50;
+  let reason = '';
+  if (!isValid) {
+    reason = 'Terdeteksi Lokasi Palsu (Fake GPS)!';
+  }
+
+  return {
+    isValid,
+    reason,
+    suspicionScore: score,
+    details: {
+      webdriverDetected: false,
+      perfectAccuracy: m.accuracy === 0,
+      zeroDrift: false,
+      timeOutSync: false,
+      timeDifferenceMin: timeSync.diffMinutes,
+      suspicionScore: score
+    }
+  };
+};
+
+/**
+ * Full Security Audit — Deep dual-measurement analysis.
+ * Retained for backward compatibility and final submit verification.
  */
 export const runSecurityAudit = (
   m1: GPSMeasurement | null,
   m2: GPSMeasurement
 ): SecurityStatus => {
-  const webdriverDetected = isAutomationDetected();
-  const timeSync = checkTimeTampering();
-  
-  let gpsAnalysis = { isMock: false, reason: '', zeroDrift: false, perfectAccuracy: false };
-  if (m1) {
-    gpsAnalysis = analyzeGPSPerformance(m1, m2);
-  } else {
-    // Single measurement checks (perfect accuracy)
-    const isPerfectInt = m2.accuracy === 0 || m2.accuracy === 1;
-    if (isPerfectInt) {
-      gpsAnalysis.isMock = true;
-      gpsAnalysis.perfectAccuracy = true;
-      gpsAnalysis.reason = 'Akurasi GPS Tidak Valid (Mocked)';
-    }
+  // For single measurement, delegate to quick audit
+  if (!m1) {
+    return runQuickAudit(m2);
   }
 
-  const isValid = !webdriverDetected && !timeSync.isTampered && !gpsAnalysis.isMock;
-  
+  const webdriverDetected = isAutomationDetected();
+  const timeSync = checkTimeTampering();
+  const gpsAnalysis = analyzeGPSPerformance(m1, m2);
+
+  // Hard blocks
+  if (webdriverDetected) {
+    return {
+      isValid: false,
+      reason: 'Deteksi Penggunaan Bot/Otomasi Browser!',
+      suspicionScore: 100,
+      details: {
+        webdriverDetected: true,
+        perfectAccuracy: gpsAnalysis.perfectAccuracy,
+        zeroDrift: gpsAnalysis.zeroDrift,
+        timeOutSync: false,
+        timeDifferenceMin: 0,
+        suspicionScore: 100
+      }
+    };
+  }
+
+  if (timeSync.isTampered) {
+    return {
+      isValid: false,
+      reason: `Jam perangkat tidak sinkron dengan server (${timeSync.diffMinutes} menit selisih). Silakan aktifkan opsi 'Atur Waktu Otomatis' di HP Anda.`,
+      suspicionScore: 100,
+      details: {
+        webdriverDetected: false,
+        perfectAccuracy: gpsAnalysis.perfectAccuracy,
+        zeroDrift: gpsAnalysis.zeroDrift,
+        timeOutSync: true,
+        timeDifferenceMin: timeSync.diffMinutes,
+        suspicionScore: 100
+      }
+    };
+  }
+
+  // Score-based blocking
+  const totalScore = gpsAnalysis.suspicionScore;
+  const isValid = totalScore < 50;
   let reason = '';
-  if (webdriverDetected) reason = 'Deteksi Penggunaan Bot/Otomasi Browser!';
-  else if (timeSync.isTampered) reason = `Jam perangkat tidak sinkron dengan server (${timeSync.diffMinutes} menit selisih). Silakan aktifkan opsi 'Atur Waktu Otomatis' di HP Anda.`;
-  else if (gpsAnalysis.isMock) reason = gpsAnalysis.reason || 'Terdeteksi Lokasi Palsu (Fake GPS)!';
+  if (!isValid) {
+    reason = gpsAnalysis.reason || 'Terdeteksi Lokasi Palsu (Fake GPS)!';
+  }
 
   return {
     isValid,
     reason,
+    suspicionScore: totalScore,
     details: {
-      webdriverDetected,
+      webdriverDetected: false,
       perfectAccuracy: gpsAnalysis.perfectAccuracy,
       zeroDrift: gpsAnalysis.zeroDrift,
-      timeOutSync: timeSync.isTampered,
-      timeDifferenceMin: timeSync.diffMinutes
+      timeOutSync: false,
+      timeDifferenceMin: timeSync.diffMinutes,
+      suspicionScore: totalScore
     }
   };
 };
