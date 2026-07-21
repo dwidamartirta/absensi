@@ -50,7 +50,7 @@
                 type="text"
                 v-model="clientSearchQuery"
                 @input="onClientInput"
-                @focus="showClientSuggestions = true"
+                @focus="onClientFocus"
                 @blur="hideClientSuggestionsDelayed"
                 placeholder="Tulis nama PT pengirim..."
                 class="w-full rounded-xl border border-slate-200 p-3 text-sm font-semibold focus:border-blue-500 focus:outline-none"
@@ -101,7 +101,7 @@
                       type="text"
                       placeholder="TCE, Oli Bekas..."
                       @input="onItemNameInput(idx)"
-                      @focus="item.showSuggestions = true"
+                      @focus="onItemNameFocus(idx)"
                       @blur="hideItemSuggestionsDelayed(idx)"
                       class="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold focus:outline-none"
                       required
@@ -242,12 +242,22 @@ const clientSearchQuery = ref('')
 const showClientSuggestions = ref(false)
 const filteredClients = ref<any[]>([])
 
+const onClientFocus = () => {
+  showClientSuggestions.value = true
+  if (!clientSearchQuery.value) {
+    filteredClients.value = clients.value
+  } else {
+    const query = clientSearchQuery.value.toLowerCase()
+    filteredClients.value = clients.value.filter(c => c.name.toLowerCase().includes(query))
+  }
+}
+
 const onClientInput = () => {
   form.value.client_name_fallback = clientSearchQuery.value
   form.value.client_id = null
   
   if (!clientSearchQuery.value) {
-    filteredClients.value = []
+    filteredClients.value = clients.value
     return
   }
   
@@ -362,10 +372,21 @@ const removeItem = (idx: number) => {
   form.value.items.splice(idx, 1)
 }
 
+const onItemNameFocus = (idx: number) => {
+  const item = form.value.items[idx]
+  item.showSuggestions = true
+  if (!item.nama_limbah) {
+    item.suggestions = itemTemplates.value
+  } else {
+    const query = item.nama_limbah.toLowerCase()
+    item.suggestions = itemTemplates.value.filter(t => t.name.toLowerCase().includes(query))
+  }
+}
+
 const onItemNameInput = (idx: number) => {
   const item = form.value.items[idx]
   if (!item.nama_limbah) {
-    item.suggestions = []
+    item.suggestions = itemTemplates.value
     return
   }
   

@@ -71,7 +71,7 @@
                     type="text"
                     v-model="item.searchQuery"
                     @input="onStockSearchInput(idx)"
-                    @focus="item.showSuggestions = true"
+                    @focus="onStockSearchFocus(idx)"
                     @blur="hideStockSuggestionsDelayed(idx)"
                     placeholder="Ketik kode atau nama limbah..."
                     class="w-full rounded-xl border border-slate-200 p-3 text-xs font-semibold focus:outline-none"
@@ -202,10 +202,24 @@ const removeItem = (idx: number) => {
   form.value.items.splice(idx, 1)
 }
 
+const onStockSearchFocus = (idx: number) => {
+  const item = form.value.items[idx]
+  item.showSuggestions = true
+  if (!item.searchQuery) {
+    item.suggestions = stocks.value
+  } else {
+    const query = item.searchQuery.toLowerCase()
+    item.suggestions = stocks.value.filter(s => 
+      s.kode_limbah.toLowerCase().includes(query) || 
+      s.nama_limbah.toLowerCase().includes(query)
+    )
+  }
+}
+
 const onStockSearchInput = (idx: number) => {
   const item = form.value.items[idx]
   if (!item.searchQuery) {
-    item.suggestions = []
+    item.suggestions = stocks.value
     return
   }
   
