@@ -40,19 +40,27 @@
 
           <div>
             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">PT Penghasil / Pengirim</label>
-            <select
-              v-model="form.client_id"
-              class="w-full rounded-xl border border-slate-200 p-3 text-sm font-semibold focus:border-blue-500 focus:outline-none mb-2"
-            >
-              <option :value="null">-- Pilih Dari Database --</option>
-              <option v-for="c in clients" :key="c.id" :value="c.id">{{ c.name }}</option>
-            </select>
-            <input
-              v-model="form.client_name_fallback"
-              type="text"
-              placeholder="Tulis manual jika PT tidak terdaftar di atas"
-              class="w-full rounded-xl border border-slate-200 p-3 text-sm font-semibold focus:border-blue-500 focus:outline-none"
-            />
+            <div class="relative">
+              <input
+                type="text"
+                v-model="clientSearchQuery"
+                @input="onClientInput"
+                @focus="showClientSuggestions = true"
+                @blur="hideClientSuggestionsDelayed"
+                placeholder="Tulis nama PT pengirim..."
+                class="w-full rounded-xl border border-slate-200 p-3 text-sm font-semibold focus:border-blue-500 focus:outline-none"
+                required
+              />
+              <ul v-if="showClientSuggestions && filteredClients.length > 0" class="absolute z-50 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg divide-y divide-slate-100">
+                <li
+                  v-for="c in filteredClients" :key="c.id"
+                  @mousedown="selectClient(c)"
+                  class="p-3 text-xs font-semibold hover:bg-slate-50 cursor-pointer text-slate-700"
+                >
+                  {{ c.name }}
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -70,36 +78,37 @@
             </button>
 
             <div class="space-y-3">
-              <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Template Limbah (Opsional)</label>
-                <select
-                  @change="fillFromTemplate(idx, $event)"
-                  class="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold focus:outline-none"
-                >
-                  <option value="">-- Pilih Limbah --</option>
-                  <option v-for="it in itemTemplates" :key="it.id" :value="it.id" :data-code="it.item_code" :data-name="it.name" :data-loc="it.characteristics">
-                    {{ it.name }} ({{ it.item_code }})
-                  </option>
-                </select>
-              </div>
-
               <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nama Limbah <span class="text-slate-400 font-normal">(Ketik/Pilih)</span></label>
+                  <div class="relative">
+                    <input
+                      v-model="item.nama_limbah"
+                      type="text"
+                      placeholder="TCE, Oli Bekas..."
+                      @input="onItemNameInput(idx)"
+                      @focus="item.showSuggestions = true"
+                      @blur="hideItemSuggestionsDelayed(idx)"
+                      class="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold focus:outline-none"
+                      required
+                    />
+                    <ul v-if="item.showSuggestions && item.suggestions && item.suggestions.length > 0" class="absolute z-50 left-0 right-0 mt-1 max-h-40 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg divide-y divide-slate-100">
+                      <li
+                        v-for="it in item.suggestions" :key="it.id"
+                        @mousedown="selectItemTemplate(idx, it)"
+                        class="p-2.5 text-[11px] font-semibold hover:bg-slate-50 cursor-pointer text-slate-700"
+                      >
+                        {{ it.name }} ({{ it.item_code }})
+                      </li>
+                    </ul>
+                  </div>
+                </div>
                 <div>
                   <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Kode Limbah</label>
                   <input
                     v-model="item.kode_limbah"
                     type="text"
                     placeholder="A102b"
-                    class="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold focus:outline-none"
-                    required
-                  />
-                </div>
-                <div>
-                  <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nama Limbah</label>
-                  <input
-                    v-model="item.nama_limbah"
-                    type="text"
-                    placeholder="TCE"
                     class="w-full rounded-xl border border-slate-200 p-2.5 text-xs font-semibold focus:outline-none"
                     required
                   />
@@ -221,13 +230,59 @@ const clients = ref<any[]>([])
 const itemTemplates = ref<any[]>([])
 const isSubmitting = ref(false)
 
+const clientSearchQuery = ref('')
+const showClientSuggestions = ref(false)
+const filteredClients = ref<any[]>([])
+
+const onClientInput = () => {
+  form.value.client_name_fallback = clientSearchQuery.value
+  form.value.client_id = null
+  
+  if (!clientSearchQuery.value) {
+    filteredClients.value = []
+    return
+  }
+  
+  const query = clientSearchQuery.value.toLowerCase()
+  filteredClients.value = clients.value.filter(c => c.name.toLowerCase().includes(query))
+  
+  const exactMatch = clients.value.find(c => c.name.toLowerCase() === query)
+  if (exactMatch) {
+    form.value.client_id = exactMatch.id
+  }
+}
+
+const selectClient = (c: any) => {
+  clientSearchQuery.value = c.name
+  form.value.client_id = c.id
+  form.value.client_name_fallback = c.name
+  showClientSuggestions.value = false
+}
+
+const hideClientSuggestionsDelayed = () => {
+  setTimeout(() => {
+    showClientSuggestions.value = false
+  }, 200)
+}
+
 const form = ref({
   tanggal_masuk: new Date().toISOString().split('T')[0],
   client_id: null as number | null,
   client_name_fallback: '',
   plat_nomor_kendaraan: '',
   items: [
-    { kode_limbah: '', nama_limbah: '', berat: 0, satuan_berat: 'kg', jenis_kemasan: 'Drum', jumlah_kemasan: 0, lokasi_simpan: '', foto: null as File | null }
+    { 
+      kode_limbah: '', 
+      nama_limbah: '', 
+      berat: 0, 
+      satuan_berat: 'kg', 
+      jenis_kemasan: 'Drum', 
+      jumlah_kemasan: 0, 
+      lokasi_simpan: '', 
+      foto: null as File | null,
+      showSuggestions: false,
+      suggestions: [] as any[]
+    }
   ]
 })
 
@@ -246,7 +301,18 @@ onMounted(() => {
 })
 
 const addItem = () => {
-  form.value.items.push({ kode_limbah: '', nama_limbah: '', berat: 0, satuan_berat: 'kg', jenis_kemasan: 'Drum', jumlah_kemasan: 0, lokasi_simpan: '', foto: null })
+  form.value.items.push({ 
+    kode_limbah: '', 
+    nama_limbah: '', 
+    berat: 0, 
+    satuan_berat: 'kg', 
+    jenis_kemasan: 'Drum', 
+    jumlah_kemasan: 0, 
+    lokasi_simpan: '', 
+    foto: null,
+    showSuggestions: false,
+    suggestions: []
+  })
 }
 
 const removeItem = (idx: number) => {
@@ -260,15 +326,39 @@ const handlePhotoUpload = (idx: number, event: any) => {
   }
 }
 
-const fillFromTemplate = (idx: number, event: any) => {
-  const selectedId = event.target.value
-  if (!selectedId) return
-  const tmpl = itemTemplates.value.find(t => t.id == selectedId)
-  if (tmpl) {
-    form.value.items[idx].kode_limbah = tmpl.item_code
-    form.value.items[idx].nama_limbah = tmpl.name
-    form.value.items[idx].lokasi_simpan = tmpl.characteristics || ''
+const onItemNameInput = (idx: number) => {
+  const item = form.value.items[idx]
+  if (!item.nama_limbah) {
+    item.suggestions = []
+    return
   }
+  
+  const query = item.nama_limbah.toLowerCase()
+  item.suggestions = itemTemplates.value.filter(t => t.name.toLowerCase().includes(query))
+  
+  const exactMatch = itemTemplates.value.find(t => t.name.toLowerCase() === query)
+  if (exactMatch) {
+    item.kode_limbah = exactMatch.item_code
+    if (exactMatch.characteristics && !item.lokasi_simpan) {
+      item.lokasi_simpan = exactMatch.characteristics
+    }
+  }
+}
+
+const selectItemTemplate = (idx: number, t: any) => {
+  const item = form.value.items[idx]
+  item.nama_limbah = t.name
+  item.kode_limbah = t.item_code
+  if (t.characteristics) {
+    item.lokasi_simpan = t.characteristics
+  }
+  item.showSuggestions = false
+}
+
+const hideItemSuggestionsDelayed = (idx: number) => {
+  setTimeout(() => {
+    form.value.items[idx].showSuggestions = false
+  }, 200)
 }
 
 const handleSubmit = async () => {

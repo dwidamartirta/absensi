@@ -65,18 +65,31 @@
 
             <div class="space-y-3">
               <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Pilih Batch Limbah di Gudang</label>
-                <select
-                  v-model="item.warehouse_in_detail_id"
-                  @change="handleBatchChange(idx)"
-                  class="w-full rounded-xl border border-slate-200 p-3 text-xs font-semibold focus:outline-none"
-                  required
-                >
-                  <option :value="0">-- Pilih Batch Limbah --</option>
-                  <option v-for="s in stocks" :key="s.id" :value="s.id">
-                    {{ s.kode_limbah }} - {{ s.nama_limbah }} [Sisa: {{ s.satuan_berat === 'ton' ? s.berat_sisa/1000 : s.berat_sisa }} {{ s.satuan_berat }} / {{ s.jumlah_kemasan_sisa || 0 }} {{ s.jenis_kemasan }}]
-                  </option>
-                </select>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Cari & Pilih Batch Limbah di Gudang</label>
+                <div class="relative">
+                  <input
+                    type="text"
+                    v-model="item.searchQuery"
+                    @input="onStockSearchInput(idx)"
+                    @focus="item.showSuggestions = true"
+                    @blur="hideStockSuggestionsDelayed(idx)"
+                    placeholder="Ketik kode atau nama limbah..."
+                    class="w-full rounded-xl border border-slate-200 p-3 text-xs font-semibold focus:outline-none"
+                    required
+                  />
+                  <ul v-if="item.showSuggestions && item.suggestions && item.suggestions.length > 0" class="absolute z-50 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-lg divide-y divide-slate-100">
+                    <li
+                      v-for="s in item.suggestions" :key="s.id"
+                      @mousedown="selectStockBatch(idx, s)"
+                      class="p-3 text-[11px] font-semibold hover:bg-slate-50 cursor-pointer text-slate-700"
+                    >
+                      <div class="font-bold text-slate-900">{{ s.kode_limbah }} - {{ s.nama_limbah }}</div>
+                      <div class="text-[10px] text-slate-400 mt-0.5">
+                        Sisa: {{ s.satuan_berat === 'ton' ? s.berat_sisa/1000 : s.berat_sisa }} {{ s.satuan_berat }} / {{ s.jumlah_kemasan_sisa || 0 }} {{ s.jenis_kemasan }}
+                      </div>
+                    </li>
+                  </ul>
+                </div>
               </div>
 
               <div class="grid grid-cols-2 gap-2">
@@ -161,7 +174,7 @@ const form = ref({
   plat_nomor_kendaraan: '',
   tujuan_pengiriman: '',
   items: [
-    { warehouse_in_detail_id: 0, berat: 0, jumlah_kemasan: 0 }
+    { warehouse_in_detail_id: 0, berat: 0, jumlah_kemasan: 0, searchQuery: '', showSuggestions: false, suggestions: [] as any[] }
   ]
 })
 
@@ -182,22 +195,42 @@ onMounted(() => {
 })
 
 const addItem = () => {
-  form.value.items.push({ warehouse_in_detail_id: 0, berat: 0, jumlah_kemasan: 0 })
+  form.value.items.push({ warehouse_in_detail_id: 0, berat: 0, jumlah_kemasan: 0, searchQuery: '', showSuggestions: false, suggestions: [] })
 }
 
 const removeItem = (idx: number) => {
   form.value.items.splice(idx, 1)
 }
 
-const handleBatchChange = (idx: number) => {
+const onStockSearchInput = (idx: number) => {
   const item = form.value.items[idx]
-  const stock = stocks.value.find(s => s.id === item.warehouse_in_detail_id)
-  if (stock) {
-    // If unit is ton, convert berat_sisa in kg to ton for initial output weight input
-    const isTon = stock.satuan_berat === 'ton'
-    item.berat = isTon ? stock.berat_sisa / 1000 : stock.berat_sisa
-    item.jumlah_kemasan = stock.jumlah_kemasan_sisa || 0
+  if (!item.searchQuery) {
+    item.suggestions = []
+    return
   }
+  
+  const query = item.searchQuery.toLowerCase()
+  item.suggestions = stocks.value.filter(s => 
+    s.kode_limbah.toLowerCase().includes(query) || 
+    s.nama_limbah.toLowerCase().includes(query)
+  )
+}
+
+const selectStockBatch = (idx: number, s: any) => {
+  const item = form.value.items[idx]
+  item.warehouse_in_detail_id = s.id
+  item.searchQuery = `${s.kode_limbah} - ${s.nama_limbah}`
+  
+  const isTon = s.satuan_berat === 'ton'
+  item.berat = isTon ? s.berat_sisa / 1000 : s.berat_sisa
+  item.jumlah_kemasan = s.jumlah_kemasan_sisa || 0
+  item.showSuggestions = false
+}
+
+const hideStockSuggestionsDelayed = (idx: number) => {
+  setTimeout(() => {
+    form.value.items[idx].showSuggestions = false
+  }, 200)
 }
 
 const getMaxWeight = (idx: number) => {

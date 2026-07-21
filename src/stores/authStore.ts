@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { login as apiLogin, logout as apiLogout, getMe } from '../api/auth'
 import type { AuthUser, LoginCredentials } from '../api/auth'
+import { markTokenRefreshed, startSilentRefreshScheduler, stopSilentRefreshScheduler } from '../api/axios'
 
 export const useAuthStore = defineStore('auth', () => {
   // --- STATE ---
@@ -40,6 +41,10 @@ export const useAuthStore = defineStore('auth', () => {
     // Persist ke localStorage
     localStorage.setItem('auth_token', access_token)
     localStorage.setItem('auth_user', JSON.stringify(userData))
+
+    // Catat waktu refresh dan mulai scheduler
+    markTokenRefreshed()
+    startSilentRefreshScheduler()
   }
 
   const logout = async () => {
@@ -52,6 +57,8 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
       localStorage.removeItem('auth_token')
       localStorage.removeItem('auth_user')
+      localStorage.removeItem('auth_token_refreshed_at')
+      stopSilentRefreshScheduler()
     }
   }
 

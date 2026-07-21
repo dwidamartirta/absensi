@@ -40,6 +40,27 @@
         </button>
       </section>
 
+      <!-- Info Sisa Cuti -->
+      <section class="mb-5">
+        <div class="flex items-center justify-between rounded-2xl bg-white border border-slate-100 p-4 shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+              <FileText :size="20" />
+            </div>
+            <div class="text-left">
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Sisa Cuti Tahunan</p>
+              <h4 class="text-sm font-black text-slate-800 mt-1.5 leading-none">
+                <span v-if="isLoadingCuti" class="inline-block h-3 w-12 animate-pulse bg-slate-200 rounded"></span>
+                <span v-else>{{ sisaCuti !== null ? sisaCuti + ' Hari' : '0 Hari' }}</span>
+              </h4>
+            </div>
+          </div>
+          <RouterLink to="/profile" class="text-[10px] font-black text-blue-600 uppercase tracking-wider bg-blue-50/50 hover:bg-blue-50 py-2 px-3 rounded-xl transition-colors">
+            Detail
+          </RouterLink>
+        </div>
+      </section>
+
       <!-- Main Attendance Card -->
       <section class="card-glass relative overflow-hidden p-5 mb-5">
         <!-- Decorative blobs -->
@@ -310,6 +331,7 @@ import 'leaflet/dist/leaflet.css'
 import { useAuthStore } from '../stores/authStore'
 import { getAttendanceHistory, checkAttendanceStatus } from '../api/attendance'
 import type { AttendanceRecord } from '../api/attendance'
+import { getProfile } from '../api/profile'
 
 const authStore = useAuthStore()
 
@@ -322,6 +344,8 @@ const jamMasukHariIni = ref<string | null>(null)
 const jamPulangHariIni = ref<string | null>(null)
 const riwayatAbsensi = ref<AttendanceRecord[]>([])
 const isLoadingRiwayat = ref(true)
+const isLoadingCuti = ref(true)
+const sisaCuti = ref<number | null>(null)
 const waktuSekarang = ref(new Date())
 let timer: number | undefined
 
@@ -349,6 +373,17 @@ onMounted(async () => {
     console.error('Failed to load attendance data:', error)
   } finally {
     isLoadingRiwayat.value = false
+  }
+
+  try {
+    const profileRes = await getProfile()
+    if (profileRes.data?.success) {
+      sisaCuti.value = profileRes.data.data.leave_stats?.balance ?? 0
+    }
+  } catch (error) {
+    console.error('Failed to load leave stats:', error)
+  } finally {
+    isLoadingCuti.value = false
   }
 })
 

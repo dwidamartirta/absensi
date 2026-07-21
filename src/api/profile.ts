@@ -24,6 +24,14 @@ export interface ProfileData {
     emergency_contact_phone: string | null
     emergency_contact_relationship: string | null
   } | null
+  leave_stats?: {
+    entitlement: number
+    used_cuti: number
+    used_izin: number
+    used_alpa: number
+    total_used: number
+    balance: number
+  } | null
 }
 
 /**

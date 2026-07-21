@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import './assets/main.css'
+import { startSilentRefreshScheduler } from './api/axios'
 
 const app = createApp(App)
 
@@ -10,6 +11,12 @@ app.use(createPinia())
 app.use(router)
 
 app.mount('#app')
+
+// Jika user sudah login (token tersimpan), mulai scheduler auto-refresh
+// agar sesi tetap hidup tanpa perlu login ulang
+if (localStorage.getItem('auth_token')) {
+  startSilentRefreshScheduler()
+}
 
 // Register Service Worker for PWA (High Performance Loading)
 if ('serviceWorker' in navigator && import.meta.env.PROD) {

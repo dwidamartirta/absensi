@@ -64,6 +64,29 @@
         </div>
       </section>
 
+      <!-- Leave Stats Card -->
+      <section class="card p-5 mb-4">
+        <div class="flex items-center gap-2 mb-4">
+          <FileText :size="16" class="text-blue-600" />
+          <p class="section-label">Informasi Cuti Tahunan ({{ new Date().getFullYear() }})</p>
+        </div>
+        <div v-if="isLoading" class="skeleton h-20 w-full rounded-xl"></div>
+        <div v-else class="grid grid-cols-3 gap-2 text-center">
+          <div class="bg-blue-50/50 rounded-xl py-3 px-1 border border-blue-50">
+            <p class="text-base font-black text-blue-600">{{ profile?.leave_stats?.entitlement ?? 0 }}</p>
+            <p class="text-[9px] font-bold uppercase text-slate-400 tracking-widest mt-1">Hak Cuti</p>
+          </div>
+          <div class="bg-rose-50/50 rounded-xl py-3 px-1 border border-rose-50">
+            <p class="text-base font-black text-rose-600">{{ profile?.leave_stats?.total_used ?? 0 }}</p>
+            <p class="text-[9px] font-bold uppercase text-slate-400 tracking-widest mt-1">Terpakai</p>
+          </div>
+          <div class="bg-teal-50/50 rounded-xl py-3 px-1 border border-teal-50">
+            <p class="text-base font-black text-teal-600">{{ profile?.leave_stats?.balance ?? 0 }}</p>
+            <p class="text-[9px] font-bold uppercase text-slate-400 tracking-widest mt-1">Sisa Cuti</p>
+          </div>
+        </div>
+      </section>
+
       <!-- Info Card -->
       <section class="card p-5 mb-4">
         <div class="flex items-center gap-2 mb-4">
