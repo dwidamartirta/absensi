@@ -22,21 +22,21 @@
     <!-- Alert Popup Modal Validasi -->
     <Transition name="modal">
       <div v-if="showValidationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-5">
-        <div class="w-full max-w-xs rounded-3xl bg-white p-6 shadow-2xl text-center">
+        <div class="w-full max-w-sm rounded-3xl bg-white p-7 shadow-2xl text-center">
           <!-- Icon Header -->
-          <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 text-amber-600 shadow-inner">
-            <AlertCircle :size="30" />
+          <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-600 shadow-inner">
+            <AlertCircle :size="40" />
           </div>
 
           <!-- Message -->
-          <h3 class="text-sm font-bold text-slate-900 leading-snug mb-6">
+          <h3 class="text-lg font-black text-slate-900 leading-relaxed mb-6 px-2">
             {{ validationMessage }}
           </h3>
 
           <!-- Button -->
           <button
             @click="closeValidationModal"
-            class="w-full rounded-2xl bg-blue-600 py-3 text-xs font-bold text-white shadow-md active:scale-95 transition-all hover:bg-blue-700"
+            class="w-full rounded-2xl bg-blue-600 py-3.5 text-base font-black text-white shadow-md active:scale-95 transition-all hover:bg-blue-700"
           >
             Oke
           </button>
