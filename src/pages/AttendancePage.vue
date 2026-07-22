@@ -223,7 +223,7 @@
             <div class="flex items-center gap-2.5">
               <span
                 class="badge"
-                :class="['late','Terlambat'].includes(item.status) ? 'badge-warning' : ['present','Hadir'].includes(item.status) ? 'badge-success' : 'badge-error'"
+                :class="getStatusBadgeClass(item.status)"
               >{{ getStatusLabel(item.status) }}</span>
               <ChevronRight :size="15" class="text-slate-300 group-hover:text-blue-400 transition-colors" />
             </div>
@@ -244,7 +244,7 @@
               <h3 class="text-base font-bold text-slate-900 mt-1">{{ selectedItem?.date ? formatTanggal(selectedItem.date) : '' }}</h3>
               <span
                 class="badge mt-2"
-                :class="['late','Terlambat'].includes(selectedItem?.status ?? '') ? 'badge-warning' : 'badge-info'"
+                :class="getStatusBadgeClass(selectedItem?.status ?? '')"
               >{{ getStatusLabel(selectedItem?.status ?? '') }}</span>
             </div>
 
@@ -416,9 +416,36 @@ const formatJam = (timeStr: string | null) => (!timeStr ? '--:--' : timeStr.subs
 const getStatusLabel = (status: string) => {
   const map: Record<string, string> = {
     present: 'Tepat Waktu', late: 'Terlambat', Hadir: 'Tepat Waktu', Terlambat: 'Terlambat',
-    sakit: 'Sakit', izin: 'Izin', cuti: 'Cuti', sick: 'Sakit', permit: 'Izin', leave: 'Cuti',
+    sakit: 'Sakit', izin: 'Izin', cuti: 'Cuti', sick: 'Sakit', permit: 'Izin', leave: 'Cuti', alpa: 'Alpa', alpha: 'Alpa', absent: 'Alpa'
   }
   return map[status] || status
+}
+
+const getStatusBadgeClass = (status: string) => {
+  const s = (status || '').toLowerCase()
+  switch (s) {
+    case 'present':
+    case 'hadir':
+      return 'badge-success'
+    case 'late':
+    case 'terlambat':
+      return 'badge-warning'
+    case 'sakit':
+    case 'sick':
+      return 'badge-pink'
+    case 'izin':
+    case 'permit':
+      return 'badge-info'
+    case 'cuti':
+    case 'leave':
+      return 'badge-purple'
+    case 'alpa':
+    case 'alpha':
+    case 'absent':
+      return 'badge-error'
+    default:
+      return 'badge-neutral'
+  }
 }
 
 const getAttachmentUrl = (path: string) => {

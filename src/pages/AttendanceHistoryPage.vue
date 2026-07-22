@@ -89,7 +89,7 @@
                 <div class="flex items-center gap-2">
                   <span class="text-sm font-bold text-slate-900">{{ formatHari(item.date) }}</span>
                   <span class="h-1 w-1 rounded-full bg-slate-300"></span>
-                  <span class="text-[10px] font-bold" :class="getStatusClass(item.status)">{{ getStatusLabel(item.status) }}</span>
+                  <span class="badge" :class="getStatusBadgeClass(item.status)">{{ getStatusLabel(item.status) }}</span>
                 </div>
                 <p v-if="!['sakit','izin','cuti','sick','permit','leave'].includes(item.status)" class="mt-0.5 text-xs font-medium text-slate-400">
                   {{ formatJam(item.time_in) }} - {{ formatJam(item.time_out) }}
@@ -258,30 +258,37 @@ const filteredHistory = computed(() => {
   })
 })
 
-const getStatusClass = (status: string) => {
-  switch (status) {
-    case 'present': case 'Hadir': return 'text-teal-600'
-    case 'late': case 'Terlambat': return 'text-amber-600'
-    case 'sakit': case 'sick': return 'text-rose-600'
-    case 'izin': case 'permit': return 'text-sky-600'
-    case 'cuti': case 'leave': return 'text-purple-600'
-    default: return 'text-slate-500'
-  }
-}
-
 const getStatusBadgeClass = (status: string) => {
-  switch (status) {
-    case 'present': case 'Hadir': return 'badge-success'
-    case 'late': case 'Terlambat': return 'badge-warning'
-    case 'sakit': case 'sick': return 'badge-error'
-    default: return 'badge-neutral'
+  const s = (status || '').toLowerCase()
+  switch (s) {
+    case 'present':
+    case 'hadir':
+      return 'badge-success'
+    case 'late':
+    case 'terlambat':
+      return 'badge-warning'
+    case 'sakit':
+    case 'sick':
+      return 'badge-pink'
+    case 'izin':
+    case 'permit':
+      return 'badge-info'
+    case 'cuti':
+    case 'leave':
+      return 'badge-purple'
+    case 'alpa':
+    case 'alpha':
+    case 'absent':
+      return 'badge-error'
+    default:
+      return 'badge-neutral'
   }
 }
 
 const getStatusLabel = (status: string) => {
   const map: Record<string, string> = {
     present: 'Tepat Waktu', late: 'Terlambat', Hadir: 'Tepat Waktu', Terlambat: 'Terlambat',
-    sakit: 'Sakit', izin: 'Izin', cuti: 'Cuti', sick: 'Sakit', permit: 'Izin', leave: 'Cuti',
+    sakit: 'Sakit', izin: 'Izin', cuti: 'Cuti', sick: 'Sakit', permit: 'Izin', leave: 'Cuti', alpa: 'Alpa', alpha: 'Alpa', absent: 'Alpa'
   }
   return map[status] || status
 }

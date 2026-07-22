@@ -191,11 +191,22 @@ const formatDay = (d: string) => new Date(d).toLocaleString('id-ID', { weekday: 
 const formatFullDate = (d: string) => new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
 
 const statusLabel = (s: string) => ({ pending: 'Menunggu', approved: 'Disetujui', rejected: 'Ditolak' }[s] ?? s)
-const statusBadge = (s: string) => ({
-  pending: 'badge-warning',
-  approved: 'badge-success',
-  rejected: 'badge-error',
-}[s] ?? 'badge-neutral')
+const statusBadge = (s: string) => {
+  const status = (s || '').toLowerCase()
+  switch (status) {
+    case 'approved':
+    case 'disetujui':
+      return 'badge-success'
+    case 'pending':
+    case 'menunggu':
+      return 'badge-warning'
+    case 'rejected':
+    case 'ditolak':
+      return 'badge-error'
+    default:
+      return 'badge-neutral'
+  }
+}
 
 const getAttachmentUrl = (path: string) => {
   const base = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') || 'http://localhost:8000'
