@@ -19,6 +19,31 @@
       <LocateFixed :size="22" :class="isCalibrating ? 'animate-spin' : ''" />
     </button>
 
+    <!-- Alert Popup Modal Validasi -->
+    <Transition name="modal">
+      <div v-if="showValidationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm px-5">
+        <div class="w-full max-w-xs rounded-3xl bg-white p-6 shadow-2xl text-center">
+          <!-- Icon Header -->
+          <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-amber-100 text-amber-600 shadow-inner">
+            <AlertCircle :size="30" />
+          </div>
+
+          <!-- Message -->
+          <h3 class="text-sm font-bold text-slate-900 leading-snug mb-6">
+            {{ validationMessage }}
+          </h3>
+
+          <!-- Button -->
+          <button
+            @click="closeValidationModal"
+            class="w-full rounded-2xl bg-blue-600 py-3 text-xs font-bold text-white shadow-md active:scale-95 transition-all hover:bg-blue-700"
+          >
+            Oke
+          </button>
+        </div>
+      </div>
+    </Transition>
+
     <section 
       class="absolute bottom-0 left-0 right-0 z-20 flex flex-col rounded-t-[32px] bg-white px-6 pb-8 pt-4 shadow-[0_-8px_30px_rgba(0,0,0,0.08)] will-change-transform max-h-[85vh]"
       :style="{ transform: `translateY(${translateY}px)`, transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)' }"
@@ -47,22 +72,56 @@
           <p>{{ isLoadingLocation ? 'Memverifikasi lokasi GPS...' : (isInRadius ? `Lokasi valid (${namaLokasiTerdekat}). Silakan isi laporan.` : `Diluar radius (${jarakUserKeKantor}m).`) }}</p>
         </div>
 
+        <!-- Validation Error Alert -->
+        <div v-if="validationError" class="mb-4 flex items-center gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-3 text-xs font-bold text-rose-700 text-left animate-shake">
+          <AlertCircle :size="16" class="shrink-0 text-rose-600" />
+          <span>{{ validationError }}</span>
+        </div>
+
         <form @submit.prevent="handleClockOut" class="space-y-4">
-          <div class="grid grid-cols-1 gap-3">
+          <div class="grid grid-cols-1 gap-4 text-left">
+            <!-- Input Jumlah Trip -->
             <div>
-              <label class="mb-1 block text-[10px] font-bold uppercase text-slate-400 text-left">Jumlah Trip</label>
-              <p class="mb-1.5 text-[9px] text-slate-400 italic text-left">Isi jika Anda adalah seorang Driver</p>
-              <input v-model="form.trip" type="number" placeholder="0" class="w-full rounded-xl border-slate-200 bg-slate-50 py-3 px-4 text-sm outline-none focus:border-blue-500 disabled:opacity-50" :disabled="!isInRadius || !!securityError" />
+              <label class="mb-1 flex items-center justify-between text-xs font-black uppercase text-slate-800">
+                <span>Jumlah Trip</span>
+                <span v-if="isDriver" class="text-rose-600 font-bold text-[10px] lowercase bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">* Wajib (Driver)</span>
+              </label>
+              <p class="mb-2 text-[10px] text-slate-500 font-medium">
+                {{ isDriver ? 'Sebagai Driver, Anda wajib mengisi jumlah trip hari ini' : 'Isi jumlah trip jika Anda adalah seorang Driver' }}
+              </p>
+              <input
+                ref="tripInputRef"
+                v-model="form.trip"
+                type="number"
+                placeholder="Masukkan jumlah trip (contoh: 2)"
+                class="w-full rounded-xl border-2 border-slate-300 bg-white py-3 px-4 text-sm font-bold text-slate-900 placeholder:text-slate-400 placeholder:font-normal outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 disabled:bg-slate-100 shadow-sm"
+                :disabled="isSubmitting"
+              />
             </div>
-          </div>
-          <div>
-            <label class="mb-1.5 block text-[10px] font-bold uppercase text-slate-400 text-left">Laporan Pekerjaan</label>
-            <textarea v-model="form.keterangan" rows="3" placeholder="Deskripsikan pekerjaan Anda hari ini..." class="w-full rounded-xl border-slate-200 bg-slate-50 py-3 px-4 text-sm outline-none focus:border-blue-500 disabled:opacity-50" :disabled="!isInRadius || !!securityError"></textarea>
+
+            <!-- Input Laporan Pekerjaan -->
+            <div>
+              <label class="mb-1 flex items-center justify-between text-xs font-black uppercase text-slate-800">
+                <span>Laporan Pekerjaan</span>
+                <span v-if="isDriver || isGudang" class="text-rose-600 font-bold text-[10px] lowercase bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200">* Wajib ({{ isDriver ? 'Driver' : 'Gudang' }})</span>
+              </label>
+              <p class="mb-2 text-[10px] text-slate-500 font-medium">
+                Deskripsikan secara singkat kegiatan atau pekerjaan Anda hari ini
+              </p>
+              <textarea
+                ref="keteranganInputRef"
+                v-model="form.keterangan"
+                rows="3"
+                placeholder="Tuliskan ringkasan hasil pekerjaan hari ini..."
+                class="w-full rounded-xl border-2 border-slate-300 bg-white py-3 px-4 text-sm font-bold text-slate-900 placeholder:text-slate-400 placeholder:font-normal outline-none focus:border-blue-600 focus:ring-4 focus:ring-blue-100 disabled:bg-slate-100 shadow-sm"
+                :disabled="isSubmitting"
+              ></textarea>
+            </div>
           </div>
 
           <button type="submit" :disabled="!isInRadius || !!securityError || isSubmitting" class="w-full flex items-center justify-center gap-2 rounded-2xl bg-blue-600 py-4 text-sm font-bold text-white shadow-md active:scale-[0.98] disabled:bg-slate-200 disabled:text-slate-400">
             <LogOut :size="18" />
-            <span>{{ securityError ? 'Absensi Diblokir' : 'Selesaikan Hari Kerja' }}</span>
+            <span>{{ securityError ? 'Absensi Diblokir' : (isLoadingLocation ? 'Memverifikasi Lokasi GPS...' : 'Selesaikan Hari Kerja') }}</span>
           </button>
         </form>
       </div>
@@ -73,15 +132,46 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowLeft, MapPin, LogOut, ShieldAlert, LocateFixed } from 'lucide-vue-next'
+import { ArrowLeft, MapPin, LogOut, ShieldAlert, LocateFixed, AlertCircle } from 'lucide-vue-next'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { storeAttendance, getLocations } from '../api/attendance'
+import { getProfile } from '../api/profile'
 import { runQuickAudit, runSecurityAudit, type GPSMeasurement } from '../utils/security'
 
 const router = useRouter()
 
 const form = ref({ trip: '', keterangan: '' })
+const userPosition = ref<string>('')
+const validationError = ref<string | null>(null)
+const showValidationModal = ref(false)
+const validationMessage = ref('')
+const tripInputRef = ref<HTMLInputElement | null>(null)
+const keteranganInputRef = ref<HTMLTextAreaElement | null>(null)
+const fieldToFocus = ref<'trip' | 'keterangan' | null>(null)
+
+const closeValidationModal = () => {
+  showValidationModal.value = false
+  setTimeout(() => {
+    if (fieldToFocus.value === 'trip' && tripInputRef.value) {
+      tripInputRef.value.focus()
+      tripInputRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    } else if (fieldToFocus.value === 'keterangan' && keteranganInputRef.value) {
+      keteranganInputRef.value.focus()
+      keteranganInputRef.value.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, 150)
+}
+
+const isDriver = computed(() => {
+  const p = userPosition.value.toLowerCase()
+  return p.includes('driver') || p.includes('supir')
+})
+
+const isGudang = computed(() => {
+  const p = userPosition.value.toLowerCase()
+  return p.includes('gudang') || p.includes('warehouse')
+})
 
 // Ambil lokasi langsung dari API
 const daftarKantor = ref<{nama: string, lat: number, lng: number, radius: number}[]>([])
@@ -106,6 +196,13 @@ onMounted(async () => {
   map = L.map('mapOut', { zoomControl: false, attributionControl: false }).setView([-6.2088, 106.8456], 15)
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
   timer = setInterval(() => waktuSekarang.value = new Date(), 1000)
+
+  // Ambil profil user untuk menentukan posisi/jabatan
+  getProfile().then(res => {
+    if (res.data?.success && res.data.data) {
+      userPosition.value = res.data.data.position || ''
+    }
+  }).catch(() => {})
 
   // PARALEL: Fetch lokasi kantor + GPS secara bersamaan
   await Promise.allSettled([
@@ -315,6 +412,40 @@ const recalibrateLocation = () => {
 const handleClockOut = async () => {
   if (isSubmitting.value || securityError.value) return
   
+  validationError.value = null
+
+  // Validasi posisi karyawan dengan pesan singkat & mengarahkan ke input
+  if (isDriver.value) {
+    const isTripEmpty = form.value.trip === '' || form.value.trip === null || Number(form.value.trip) < 0
+    const isNotesEmpty = !form.value.keterangan || !form.value.keterangan.trim()
+
+    if (isTripEmpty && isNotesEmpty) {
+      validationMessage.value = 'Jumlah trip & laporan pekerjaan wajib diisi'
+      fieldToFocus.value = 'trip'
+      showValidationModal.value = true
+      return
+    }
+    if (isTripEmpty) {
+      validationMessage.value = 'Jumlah trip wajib diisi'
+      fieldToFocus.value = 'trip'
+      showValidationModal.value = true
+      return
+    }
+    if (isNotesEmpty) {
+      validationMessage.value = 'Laporan pekerjaan wajib diisi'
+      fieldToFocus.value = 'keterangan'
+      showValidationModal.value = true
+      return
+    }
+  } else if (isGudang.value) {
+    if (!form.value.keterangan || !form.value.keterangan.trim()) {
+      validationMessage.value = 'Laporan pekerjaan wajib diisi'
+      fieldToFocus.value = 'keterangan'
+      showValidationModal.value = true
+      return
+    }
+  }
+
   // Final Security Check before sending payload
   const finalAudit = runSecurityAudit(null, {
     latitude: userLat,
