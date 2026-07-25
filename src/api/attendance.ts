@@ -121,3 +121,43 @@ export const getAbsentEmployees = (params?: { date?: string }) => {
   return api.get<AbsentEmployeesResponse>('/admin/attendance/absent', { params })
 }
 
+export interface DailyTeamSummary {
+  total: number
+  present: number
+  late: number
+  sick: number
+  permit: number
+  leave: number
+  absent: number
+}
+
+export interface DailyTeamEmployee {
+  employee_id: number
+  nik_karyawan: string
+  full_name: string
+  email: string | null
+  position_name: string | null
+  status: string
+  time_in: string | null
+  time_out: string | null
+  attendance_detail: string | null
+  attachment: string | null
+}
+
+export interface DailyTeamAttendanceResponse {
+  success: boolean
+  message: string
+  date: string
+  summary: DailyTeamSummary
+  data: DailyTeamEmployee[]
+}
+
+/**
+ * Ambil daftar dan ringkasan presensi tim harian untuk tanggal tertentu
+ * GET /api/v1/admin/attendance/daily-team
+ */
+export const getDailyTeamAttendance = (params?: { date?: string }) => {
+  return api.get<DailyTeamAttendanceResponse>('/admin/attendance/daily-team', { params })
+}
+
+

@@ -130,6 +130,12 @@ const router = createRouter({
       component: () => import('../pages/AbsentEmployeesPage.vue'),
       meta: { requiresAuth: true },
     },
+    {
+      path: '/presensi-tim',
+      name: 'presensi-tim',
+      component: () => import('../pages/DailyTeamAttendancePage.vue'),
+      meta: { requiresAuth: true },
+    },
 
     {
         path: '/feedback',

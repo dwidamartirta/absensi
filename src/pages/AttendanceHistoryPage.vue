@@ -26,24 +26,37 @@
         <div class="flex items-center justify-between cursor-pointer" @click="isFilterOpen = !isFilterOpen">
           <div class="flex items-center gap-2 text-blue-600">
             <Filter :size="16" />
-            <h2 class="text-sm font-bold">Filter Data</h2>
+            <h2 class="text-sm font-bold">Filter Rentang Tanggal</h2>
           </div>
           <div class="flex items-center gap-2">
-            <span v-if="filters.status.length > 0 || filters.startDate"
+            <span v-if="filters.status.length > 0 || filters.startDate || filters.endDate"
               class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-[10px] font-bold text-blue-600">!</span>
             <ChevronDown :size="16" class="text-slate-400 transition-transform duration-200" :class="isFilterOpen ? 'rotate-180' : ''" />
           </div>
         </div>
 
         <div v-show="isFilterOpen" class="mt-4 space-y-4 border-t border-slate-100 pt-4">
+          <!-- Presets -->
+          <div class="flex items-center gap-2">
+            <button @click="setPreset('7days')" class="rounded-xl px-3 py-1.5 text-[10px] font-bold bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition-colors">
+              7 Hari Terakhir
+            </button>
+            <button @click="setPreset('thisMonth')" class="rounded-xl px-3 py-1.5 text-[10px] font-bold bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 transition-colors">
+              Bulan Ini
+            </button>
+            <button @click="resetFilter" class="rounded-xl px-3 py-1.5 text-[10px] font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors ml-auto">
+              Reset
+            </button>
+          </div>
+
           <div class="grid grid-cols-2 gap-2.5">
             <div>
               <label class="label">Dari Tanggal</label>
-              <input v-model="filters.startDate" type="date" class="input-base py-2.5 text-xs" />
+              <input v-model="filters.startDate" type="date" class="input-base py-2.5 text-xs" @change="fetchHistory" />
             </div>
             <div>
               <label class="label">Sampai Tanggal</label>
-              <input v-model="filters.endDate" type="date" class="input-base py-2.5 text-xs" />
+              <input v-model="filters.endDate" type="date" class="input-base py-2.5 text-xs" @change="fetchHistory" />
             </div>
           </div>
 
@@ -61,8 +74,6 @@
               >{{ status.label }}</button>
             </div>
           </div>
-
-          <button @click="resetFilter" class="text-[11px] font-bold text-rose-500 hover:underline">Reset Filter</button>
         </div>
       </section>
 
@@ -226,6 +237,23 @@ const toggleStatus = (id: string) => {
 
 const resetFilter = () => {
   filters.value = { startDate: '', endDate: '', status: [] }
+  fetchHistory()
+}
+
+const setPreset = (type: '7days' | 'thisMonth') => {
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
+
+  if (type === '7days') {
+    const past = new Date()
+    past.setDate(today.getDate() - 7)
+    filters.value.startDate = past.toISOString().split('T')[0]
+    filters.value.endDate = todayStr
+  } else if (type === 'thisMonth') {
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
+    filters.value.startDate = firstDay.toISOString().split('T')[0]
+    filters.value.endDate = todayStr
+  }
   fetchHistory()
 }
 

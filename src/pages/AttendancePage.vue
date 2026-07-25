@@ -3,7 +3,7 @@
     <div class="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pt-6">
 
       <!-- Header -->
-      <header class="mb-5 flex items-center justify-between">
+      <header class="mb-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 shadow-lg shadow-blue-200/60 text-white font-black text-base select-none">
             {{ inisial }}
@@ -15,53 +15,13 @@
         </div>
         <button
           @click="$router.push('/profile')"
-          class="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 shadow-sm active:scale-90 transition-all"
+          class="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 shadow-sm active:scale-90 transition-all hover:bg-slate-50"
         >
           <UserRound :size="19" />
         </button>
       </header>
 
-      <!-- Gudang Shortcut (Hanya untuk yang punya hak akses) -->
-      <section v-if="authStore.user?.permissions_list?.includes('warehouse.view')" class="mb-5">
-        <button
-          @click="$router.push('/gudang')"
-          class="flex w-full items-center justify-between rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 p-4 text-white shadow-lg shadow-emerald-100 transition-all active:scale-[0.98]"
-        >
-          <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/20">
-              <Package :size="20" class="text-white" />
-            </div>
-            <div class="text-left">
-              <h4 class="text-xs font-black tracking-wide text-white uppercase">LIMBAH MASUK & KELUAR</h4>
-              <p class="text-[9px] font-bold text-white/80 uppercase mt-0.5">Catat Limbah Masuk & Keluar Gudang</p>
-            </div>
-          </div>
-          <ChevronRight :size="16" class="text-white/80" />
-        </button>
-      </section>
-
-      <!-- Info Sisa Cuti -->
-      <section class="mb-5">
-        <div class="flex items-center justify-between rounded-2xl bg-white border border-slate-100 p-4 shadow-sm">
-          <div class="flex items-center gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-              <FileText :size="20" />
-            </div>
-            <div class="text-left">
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider leading-none">Sisa Cuti Tahunan</p>
-              <h4 class="text-sm font-black text-slate-800 mt-1.5 leading-none">
-                <span v-if="isLoadingCuti" class="inline-block h-3 w-12 animate-pulse bg-slate-200 rounded"></span>
-                <span v-else>{{ sisaCuti !== null ? sisaCuti + ' Hari' : '0 Hari' }}</span>
-              </h4>
-            </div>
-          </div>
-          <RouterLink to="/profile" class="text-[10px] font-black text-blue-600 uppercase tracking-wider bg-blue-50/50 hover:bg-blue-50 py-2 px-3 rounded-xl transition-colors">
-            Detail
-          </RouterLink>
-        </div>
-      </section>
-
-      <!-- Main Attendance Card -->
+      <!-- Main Attendance Clock Card -->
       <section class="card-glass relative overflow-hidden p-5 mb-5">
         <!-- Decorative blobs -->
         <div class="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-blue-400/5 blur-3xl pointer-events-none"></div>
@@ -85,10 +45,18 @@
               <div class="flex items-center gap-2 mt-1">
                 <div
                   class="pulse-dot h-2 w-2 rounded-full"
-                  :class="absensiState === 'sudah_masuk' ? 'bg-teal-500' : 'bg-slate-300'"
+                  :class="absensiState === 'sudah_masuk' ? 'bg-teal-500' :
+                          absensiState === 'sakit' ? 'bg-rose-500' :
+                          absensiState === 'izin' ? 'bg-amber-500' :
+                          absensiState === 'cuti' ? 'bg-indigo-500' : 'bg-slate-300'"
                 ></div>
                 <span class="text-sm font-bold text-slate-900">
-                  {{ absensiState === 'belum_masuk' ? 'Belum Absen' : absensiState === 'sudah_masuk' ? 'Sedang Bekerja' : 'Sudah Pulang' }}
+                  {{ absensiState === 'belum_masuk' ? 'Belum Absen' :
+                     absensiState === 'sudah_masuk' ? 'Sedang Bekerja' :
+                     absensiState === 'sudah_pulang' ? 'Sudah Pulang' :
+                     absensiState === 'sakit' ? 'Izin Sakit' :
+                     absensiState === 'izin' ? 'Izin Keperluan' :
+                     absensiState === 'cuti' ? 'Cuti Tahunan' : 'Status Absensi' }}
                 </span>
               </div>
             </div>
@@ -98,8 +66,8 @@
             </div>
           </div>
 
-          <!-- Clock -->
-          <div class="flex flex-col items-center justify-center py-4">
+          <!-- Clock (Hanya tampil jika belum pulang / tidak izin) -->
+          <div v-if="!['sudah_pulang', 'sakit', 'izin', 'cuti'].includes(absensiState)" class="flex flex-col items-center justify-center py-4">
             <div class="flex items-baseline gap-0.5">
               <h2 class="text-5xl font-black tracking-tighter text-slate-900 tabular-nums">{{ jamSekarang }}</h2>
             </div>
@@ -108,7 +76,7 @@
             </p>
           </div>
 
-          <!-- Action Buttons -->
+          <!-- Action Buttons / State Cards -->
           <div v-if="absensiState === 'belum_masuk'" class="mt-4">
             <RouterLink
               to="/absen-masuk"
@@ -139,28 +107,170 @@
             </RouterLink>
           </div>
 
-          <div v-else-if="absensiState === 'sudah_pulang'" class="mt-4 rounded-2xl bg-teal-50 border border-teal-100 p-5 text-center">
-            <div class="flex justify-center mb-3 text-teal-600">
-              <CheckCircle2 :size="30" />
+          <div v-else-if="absensiState === 'sudah_pulang'" class="mt-2 rounded-2xl bg-teal-50 border border-teal-100 p-5 text-center">
+            <div class="flex justify-center mb-2 text-teal-600">
+              <CheckCircle2 :size="32" />
             </div>
             <h3 class="text-sm font-black text-teal-800 uppercase tracking-wide">Pekerjaan Selesai</h3>
-            <p class="mt-1 text-xs text-teal-600 font-medium">Sampai jumpa di hari esok!</p>
+            <p class="text-3xl font-black text-teal-900 tracking-tight my-2 tabular-nums">{{ jamSekarang }}</p>
+            <p class="text-xs text-teal-600 font-medium">Sampai jumpa di hari esok!</p>
             <div class="mt-4 flex items-center justify-center gap-8 border-t border-teal-100 pt-4">
               <div>
-                <p class="text-[9px] font-bold uppercase text-teal-400 mb-0.5">Masuk</p>
+                <p class="text-[9px] font-bold uppercase text-teal-500 mb-0.5">Masuk</p>
                 <p class="text-xs font-black text-teal-800">{{ jamMasukHariIni }}</p>
               </div>
               <div class="h-4 w-px bg-teal-200"></div>
               <div>
-                <p class="text-[9px] font-bold uppercase text-teal-400 mb-0.5">Pulang</p>
+                <p class="text-[9px] font-bold uppercase text-teal-500 mb-0.5">Pulang</p>
                 <p class="text-xs font-black text-teal-800">{{ jamPulangHariIni }}</p>
               </div>
+            </div>
+          </div>
+
+          <!-- Card khusus SAKIT -->
+          <div v-else-if="absensiState === 'sakit'" class="mt-2 rounded-2xl bg-gradient-to-b from-rose-50 to-pink-50/70 border border-rose-100 p-5 text-center shadow-sm">
+            <div class="flex justify-center mb-2.5">
+              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-600 text-white shadow-md shadow-rose-200">
+                <Stethoscope :size="24" />
+              </div>
+            </div>
+            <h3 class="text-sm font-black text-rose-900 uppercase tracking-wide">Sedang Izin Sakit</h3>
+            <p class="text-xs text-rose-600 font-medium mt-1">Semoga lekas sembuh! Jaga kesehatan & istirahat secukupnya.</p>
+            <div v-if="keteranganHariIni" class="mt-4 rounded-xl bg-white/80 border border-rose-100 p-3 text-left">
+              <p class="text-[9px] font-bold text-rose-400 uppercase tracking-wider">Catatan Pengajuan</p>
+              <p class="text-xs font-semibold text-rose-900 italic mt-0.5 font-mono">"{{ keteranganHariIni }}"</p>
+            </div>
+          </div>
+
+          <!-- Card khusus IZIN -->
+          <div v-else-if="absensiState === 'izin'" class="mt-2 rounded-2xl bg-gradient-to-b from-amber-50 to-orange-50/70 border border-amber-100 p-5 text-center shadow-sm">
+            <div class="flex justify-center mb-2.5">
+              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500 text-white shadow-md shadow-amber-200">
+                <FileText :size="24" />
+              </div>
+            </div>
+            <h3 class="text-sm font-black text-amber-900 uppercase tracking-wide">Sedang Izin Kerja</h3>
+            <p class="text-xs text-amber-600 font-medium mt-1">Pengajuan izin Anda telah dicatat untuk hari ini.</p>
+            <div v-if="keteranganHariIni" class="mt-4 rounded-xl bg-white/80 border border-amber-100 p-3 text-left">
+              <p class="text-[9px] font-bold text-amber-400 uppercase tracking-wider">Alasan Izin</p>
+              <p class="text-xs font-semibold text-amber-900 italic mt-0.5 font-mono">"{{ keteranganHariIni }}"</p>
+            </div>
+          </div>
+
+          <!-- Card khusus CUTI -->
+          <div v-else-if="absensiState === 'cuti'" class="mt-2 rounded-2xl bg-gradient-to-b from-indigo-50 to-sky-50/70 border border-indigo-100 p-5 text-center shadow-sm">
+            <div class="flex justify-center mb-2.5">
+              <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-200">
+                <Palmtree :size="24" />
+              </div>
+            </div>
+            <h3 class="text-sm font-black text-indigo-900 uppercase tracking-wide">Sedang Cuti Tahunan</h3>
+            <p class="text-xs text-indigo-600 font-medium mt-1">Selamat menikmati waktu istirahat & liburan Anda!</p>
+            <div v-if="keteranganHariIni" class="mt-4 rounded-xl bg-white/80 border border-indigo-100 p-3 text-left">
+              <p class="text-[9px] font-bold text-indigo-400 uppercase tracking-wider">Catatan Cuti</p>
+              <p class="text-xs font-semibold text-indigo-900 italic mt-0.5 font-mono">"{{ keteranganHariIni }}"</p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- History Section -->
+      <!-- Quick Access Menu Grid (Menu Utama & Layanan) -->
+      <section class="mb-6">
+        <div class="mb-3 px-1 flex items-center justify-between">
+          <h3 class="text-[11px] font-black tracking-[0.15em] text-slate-900 uppercase">Menu & Layanan</h3>
+          <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Akses Cepat</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <!-- 1. Presensi Tim Harian -->
+          <RouterLink
+            to="/presensi-tim"
+            class="group flex flex-col justify-between rounded-2xl bg-white border border-slate-100 p-3.5 shadow-sm transition-all hover:border-blue-200 hover:shadow-md active:scale-[0.98]"
+          >
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                <Users :size="20" />
+              </div>
+              <ChevronRight :size="15" class="text-slate-300 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+            </div>
+            <div class="text-left">
+              <h4 class="text-xs font-black text-slate-800 group-hover:text-blue-600 transition-colors">Presensi Tim</h4>
+              <p class="text-[9px] font-semibold text-slate-400 mt-0.5">Pantau status harian</p>
+            </div>
+          </RouterLink>
+
+          <!-- 2. Ketidakhadiran (Sakit / Izin / Cuti) -->
+          <RouterLink
+            to="/ketidakhadiran"
+            class="group flex flex-col justify-between rounded-2xl bg-white border border-slate-100 p-3.5 shadow-sm transition-all hover:border-amber-200 hover:shadow-md active:scale-[0.98]"
+          >
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600 transition-colors group-hover:bg-amber-600 group-hover:text-white">
+                <FileText :size="20" />
+              </div>
+              <ChevronRight :size="15" class="text-slate-300 group-hover:text-amber-600 group-hover:translate-x-0.5 transition-all" />
+            </div>
+            <div class="text-left">
+              <h4 class="text-xs font-black text-slate-800 group-hover:text-amber-600 transition-colors">Ketidakhadiran</h4>
+              <p class="text-[9px] font-semibold text-slate-400 mt-0.5">Form Sakit, Izin & Cuti</p>
+            </div>
+          </RouterLink>
+
+          <!-- 3. Riwayat Absensi Personal -->
+          <RouterLink
+            to="/history-absensi"
+            class="group flex flex-col justify-between rounded-2xl bg-white border border-slate-100 p-3.5 shadow-sm transition-all hover:border-emerald-200 hover:shadow-md active:scale-[0.98]"
+          >
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
+                <History :size="20" />
+              </div>
+              <ChevronRight :size="15" class="text-slate-300 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
+            </div>
+            <div class="text-left">
+              <h4 class="text-xs font-black text-slate-800 group-hover:text-emerald-600 transition-colors">Riwayat Absensi</h4>
+              <p class="text-[9px] font-semibold text-slate-400 mt-0.5">Filter rentang tanggal</p>
+            </div>
+          </RouterLink>
+
+          <!-- 4. Limbah Gudang ATAU Lembur -->
+          <RouterLink
+            v-if="authStore.user?.permissions_list?.includes('warehouse.view')"
+            to="/gudang"
+            class="group flex flex-col justify-between rounded-2xl bg-white border border-slate-100 p-3.5 shadow-sm transition-all hover:border-teal-200 hover:shadow-md active:scale-[0.98]"
+          >
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-600 transition-colors group-hover:bg-teal-600 group-hover:text-white">
+                <Package :size="20" />
+              </div>
+              <ChevronRight :size="15" class="text-slate-300 group-hover:text-teal-600 group-hover:translate-x-0.5 transition-all" />
+            </div>
+            <div class="text-left">
+              <h4 class="text-xs font-black text-slate-800 group-hover:text-teal-600 transition-colors">Limbah Gudang</h4>
+              <p class="text-[9px] font-semibold text-slate-400 mt-0.5">Catat masuk & keluar</p>
+            </div>
+          </RouterLink>
+
+          <RouterLink
+            v-else
+            to="/lembur"
+            class="group flex flex-col justify-between rounded-2xl bg-white border border-slate-100 p-3.5 shadow-sm transition-all hover:border-purple-200 hover:shadow-md active:scale-[0.98]"
+          >
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600 transition-colors group-hover:bg-purple-600 group-hover:text-white">
+                <Clock :size="20" />
+              </div>
+              <ChevronRight :size="15" class="text-slate-300 group-hover:text-purple-600 group-hover:translate-x-0.5 transition-all" />
+            </div>
+            <div class="text-left">
+              <h4 class="text-xs font-black text-slate-800 group-hover:text-purple-600 transition-colors">Pengajuan Lembur</h4>
+              <p class="text-[9px] font-semibold text-slate-400 mt-0.5">Catat jam lembur</p>
+            </div>
+          </RouterLink>
+        </div>
+      </section>
+
+      <!-- History Section (7 Hari Terakhir) -->
       <section class="flex-1">
         <div class="mb-4 flex items-center justify-between px-1">
           <div>
@@ -324,7 +434,8 @@ import BottomNav from '../components/BottomNav.vue'
 import { computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import {
   FileText, X, MapPin, ExternalLink, Fingerprint,
-  CalendarCheck, Clock, LogOut, ChevronRight, CheckCircle2, UserRound, Package
+  CalendarCheck, Clock, LogOut, ChevronRight, CheckCircle2, UserRound, Package,
+  Users, History, Stethoscope, Palmtree
 } from 'lucide-vue-next'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -339,9 +450,10 @@ const namaKaryawan = computed(() => authStore.userName)
 const inisial = computed(() => authStore.userInitials)
 const jabatan = computed(() => authStore.userPosition)
 
-const absensiState = ref<'loading' | 'belum_masuk' | 'sudah_masuk' | 'sudah_pulang'>('loading')
+const absensiState = ref<'loading' | 'belum_masuk' | 'sudah_masuk' | 'sudah_pulang' | 'sakit' | 'izin' | 'cuti'>('loading')
 const jamMasukHariIni = ref<string | null>(null)
 const jamPulangHariIni = ref<string | null>(null)
+const keteranganHariIni = ref<string | null>(null)
 const riwayatAbsensi = ref<AttendanceRecord[]>([])
 const isLoadingRiwayat = ref(true)
 const isLoadingCuti = ref(true)
@@ -359,6 +471,7 @@ onMounted(async () => {
       absensiState.value = (d.state as any) || 'belum_masuk'
       if (d.time_in) jamMasukHariIni.value = d.time_in.substring(0, 5)
       if (d.time_out) jamPulangHariIni.value = d.time_out.substring(0, 5)
+      if ((d as any).attendance_detail) keteranganHariIni.value = (d as any).attendance_detail
     }
 
     const today = new Date()
