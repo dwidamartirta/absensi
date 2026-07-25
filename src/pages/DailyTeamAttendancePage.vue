@@ -8,8 +8,8 @@
             <Users :size="20" />
           </div>
           <div>
-            <h1 class="text-[15px] font-black tracking-tight leading-none text-slate-900">Presensi Tim Harian</h1>
-            <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Pantau Kehadiran Karyawan</p>
+            <h1 class="text-[15px] font-black tracking-tight leading-none text-slate-900">Absensi Tim Operasional</h1>
+            <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Gudang, Driver, CS & Security</p>
           </div>
         </div>
         <RouterLink to="/absensi" class="btn-back">
@@ -358,11 +358,13 @@ const fetchData = async () => {
   }
 }
 
+const allowedPosKeywords = ['gudang', 'warehouse', 'driver', 'sopir', 'supir', 'cleaning', 'cs', 'kebersihan', 'security', 'satpam', 'keamanan']
+
 const fallbackFetchAbsent = async () => {
   try {
     const res = await getAbsentEmployees({ date: selectedDate.value })
     if (res.data?.success) {
-      const absentList = res.data.data.map(emp => ({
+      let absentList = res.data.data.map(emp => ({
         employee_id: emp.id,
         nik_karyawan: emp.nik_karyawan,
         full_name: emp.full_name,
@@ -374,6 +376,16 @@ const fallbackFetchAbsent = async () => {
         attendance_detail: null,
         attachment: null
       }))
+
+      const filtered = absentList.filter(emp => {
+        const pos = (emp.position_name || '').toLowerCase()
+        return allowedPosKeywords.some(kw => pos.includes(kw))
+      })
+
+      if (filtered.length > 0) {
+        absentList = filtered
+      }
+
       employees.value = absentList
       summary.value = {
         total: absentList.length,

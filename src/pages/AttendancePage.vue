@@ -182,7 +182,7 @@
         </div>
 
         <div class="grid grid-cols-2 gap-3">
-          <!-- 1. Presensi Tim Harian -->
+          <!-- 1. Absensi Tim Harian -->
           <RouterLink
             to="/presensi-tim"
             class="group flex flex-col justify-between rounded-2xl bg-white border border-slate-100 p-3.5 shadow-sm transition-all hover:border-blue-200 hover:shadow-md active:scale-[0.98]"
@@ -194,7 +194,7 @@
               <ChevronRight :size="15" class="text-slate-300 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
             </div>
             <div class="text-left">
-              <h4 class="text-xs font-black text-slate-800 group-hover:text-blue-600 transition-colors">Presensi Tim</h4>
+              <h4 class="text-xs font-black text-slate-800 group-hover:text-blue-600 transition-colors">Absensi Tim</h4>
               <p class="text-[9px] font-semibold text-slate-400 mt-0.5">Pantau status harian</p>
             </div>
           </RouterLink>

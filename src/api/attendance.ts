@@ -153,7 +153,7 @@ export interface DailyTeamAttendanceResponse {
 }
 
 /**
- * Ambil daftar dan ringkasan presensi tim harian untuk tanggal tertentu
+ * Ambil daftar dan ringkasan absensi tim harian untuk tanggal tertentu
  * GET /api/v1/admin/attendance/daily-team
  */
 export const getDailyTeamAttendance = (params?: { date?: string }) => {
