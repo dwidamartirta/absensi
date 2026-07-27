@@ -86,11 +86,11 @@
           Belum ada tugas pengangkutan yang sesuai dengan filter yang Anda pilih.
         </p>
         <button
-          v-if="selectedDate || selectedStatus !== 'all'"
+          v-if="selectedDate || selectedStatus !== 'confirmed'"
           @click="resetAllFilters"
           class="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800"
         >
-          Reset Semua Filter
+          Reset Filter
         </button>
       </div>
 
@@ -280,15 +280,12 @@ const isLoading = ref(true)
 const isModalOpen = ref(false)
 const selectedTask = ref<DailyTask | null>(null)
 
-const selectedStatus = ref<string>('all')
+const selectedStatus = ref<string>('confirmed')
 const selectedDate = ref<string>('')
 
 const statusOptions = [
-  { key: 'all', label: 'Semua Status' },
-  { key: 'planned', label: 'Direncanakan' },
   { key: 'confirmed', label: 'Berjalan' },
   { key: 'completed', label: 'Selesai' },
-  { key: 'cancelled', label: 'Dibatalkan' },
 ]
 
 const setFilterStatus = (stKey: string) => {
@@ -308,7 +305,7 @@ const resetDateFilter = () => {
 }
 
 const resetAllFilters = () => {
-  selectedStatus.value = 'all'
+  selectedStatus.value = 'confirmed'
   selectedDate.value = ''
   fetchData()
 }
