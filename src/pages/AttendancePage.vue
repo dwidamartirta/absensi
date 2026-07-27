@@ -55,35 +55,6 @@
         </button>
       </div>
 
-      <!-- Banner Cards Pengingat Aktif (Top Priority Notification) -->
-      <div v-if="notifications.length > 0" class="mb-5 space-y-2">
-        <div
-          v-for="notif in notifications"
-          :key="notif.id"
-          class="rounded-2xl border p-4 shadow-sm transition-all flex items-start gap-3 relative overflow-hidden"
-          :class="notif.type === 'attendance_in' ? 'bg-amber-50/90 border-amber-200 text-amber-900' :
-                  notif.type === 'attendance_out' ? 'bg-blue-50/90 border-blue-200 text-blue-900' :
-                  'bg-teal-50/90 border-teal-200 text-teal-900'"
-        >
-          <div
-            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white shadow-sm"
-            :class="notif.type === 'attendance_in' ? 'bg-amber-500' :
-                    notif.type === 'attendance_out' ? 'bg-blue-600' : 'bg-teal-600'"
-          >
-            <component :is="notifIcon(notif.type)" :size="18" />
-          </div>
-          <div class="flex-1 min-w-0">
-            <h4 class="text-xs font-bold leading-tight">{{ notif.title }}</h4>
-            <p class="mt-1 text-[11px] leading-relaxed opacity-90 font-medium">{{ notif.body }}</p>
-            <button
-              @click="$router.push(notif.action_url)"
-              class="mt-2 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider underline hover:opacity-80"
-            >
-              Proses Sekarang <ChevronRight :size="12" />
-            </button>
-          </div>
-        </div>
-      </div>
 
       <!-- Main Attendance Clock Card -->
       <section class="card-glass relative overflow-hidden p-5 mb-5">
