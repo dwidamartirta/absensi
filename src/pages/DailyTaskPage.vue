@@ -60,9 +60,14 @@
             </div>
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between">
-                <span class="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider" :class="statusBadge(task.status)">
-                  {{ statusLabel(task.status) }}
-                </span>
+                <div class="flex items-center gap-1.5">
+                  <span class="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider" :class="statusBadge(task.status)">
+                    {{ statusLabel(task.status) }}
+                  </span>
+                  <span v-if="task.details.my_role" class="rounded-full bg-slate-100 px-2 py-0.5 text-[9px] font-bold text-slate-600 uppercase border border-slate-200">
+                    {{ task.details.my_role }}
+                  </span>
+                </div>
                 <span class="text-[11px] font-bold text-slate-400">{{ formatTime(task.time) }}</span>
               </div>
               <h4 class="mt-1.5 text-sm font-bold text-slate-900 truncate">{{ task.title }}</h4>
@@ -88,6 +93,22 @@
                 <p class="text-[9px] font-bold uppercase text-slate-400 leading-none">Kode Limbah</p>
                 <p class="text-[11px] font-bold text-slate-700 mt-0.5">{{ task.details.waste_code || '-' }}</p>
               </div>
+            </div>
+          </div>
+
+          <!-- Info Tim (Driver & Crew) -->
+          <div v-if="task.details.driver || task.details.crew" class="mt-3 rounded-2xl bg-slate-50 p-3 border border-slate-100 space-y-1.5 text-xs">
+            <div v-if="task.details.driver" class="flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase text-slate-400 flex items-center gap-1">
+                <User :size="12" /> Driver:
+              </span>
+              <span class="font-bold text-slate-800">{{ task.details.driver }}</span>
+            </div>
+            <div v-if="task.details.crew" class="flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase text-slate-400 flex items-center gap-1">
+                <Users :size="12" /> Crew/Kernet:
+              </span>
+              <span class="font-bold text-slate-800">{{ task.details.crew }}</span>
             </div>
           </div>
 
@@ -127,10 +148,15 @@
           </button>
 
           <div class="mb-5 pr-10">
-            <span class="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider" :class="statusBadge(selectedTask?.status ?? '')">
-              {{ statusLabel(selectedTask?.status ?? '') }}
-            </span>
-            <h3 class="text-lg font-bold text-slate-900 mt-2">{{ selectedTask?.title }}</h3>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider" :class="statusBadge(selectedTask?.status ?? '')">
+                {{ statusLabel(selectedTask?.status ?? '') }}
+              </span>
+              <span v-if="selectedTask?.details.my_role" class="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold text-slate-600 uppercase border border-slate-200">
+                Peran: {{ selectedTask?.details.my_role }}
+              </span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900">{{ selectedTask?.title }}</h3>
             <p class="text-xs text-slate-500 mt-1">{{ selectedTask?.client_name }}</p>
           </div>
 
@@ -143,6 +169,19 @@
               <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100">
                 <p class="text-[10px] font-bold uppercase text-slate-400">Nomor Polisi</p>
                 <p class="mt-1 text-sm font-bold text-slate-900">{{ selectedTask?.details.nopol || '-' }}</p>
+              </div>
+            </div>
+
+            <!-- Petugas Tugas (Driver & Crew) -->
+            <div class="rounded-2xl bg-slate-50 p-4 border border-slate-100 space-y-2">
+              <p class="text-[10px] font-bold uppercase text-slate-400">Petugas / Tim Tugas</p>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-500 font-semibold">Driver:</span>
+                <span class="font-bold text-slate-900">{{ selectedTask?.details.driver || '-' }}</span>
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-slate-500 font-semibold">Crew / Kernet:</span>
+                <span class="font-bold text-slate-900">{{ selectedTask?.details.crew || selectedTask?.details.crew_name || '-' }}</span>
               </div>
             </div>
 
@@ -183,7 +222,7 @@ import { getDailyTasks, updateTaskStatus, type DailyTask } from '../api/dailyTas
 import { useToast } from '../composables/useToast'
 import BottomNav from '../components/BottomNav.vue'
 import { 
-  ArrowLeft, Truck, ClipboardList, CreditCard, Tag, X
+  ArrowLeft, Truck, ClipboardList, CreditCard, Tag, X, User, Users
 } from 'lucide-vue-next'
 
 const router = useRouter()

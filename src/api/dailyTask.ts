@@ -11,7 +11,9 @@ export interface DailyTask {
   details: {
     nopol?: string
     driver?: string
+    crew?: string
     waste_code?: string
+    my_role?: string
     [key: string]: any
   }
 }

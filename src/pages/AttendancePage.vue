@@ -13,13 +13,77 @@
             <p class="mt-1 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-400">{{ jabatan }}</p>
           </div>
         </div>
-        <button
-          @click="$router.push('/profile')"
-          class="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 shadow-sm active:scale-90 transition-all hover:bg-slate-50"
-        >
-          <UserRound :size="19" />
-        </button>
+        <div class="flex items-center gap-2">
+          <!-- Tombol Lonceng Notifikasi -->
+          <button
+            @click="isNotifModalOpen = true"
+            class="relative flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-600 shadow-sm active:scale-90 transition-all hover:bg-slate-50"
+          >
+            <Bell :size="19" />
+            <span
+              v-if="notifications.length > 0"
+              class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-sm animate-pulse"
+            >
+              {{ notifications.length }}
+            </span>
+          </button>
+          <button
+            @click="$router.push('/profile')"
+            class="flex h-10 w-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-slate-400 shadow-sm active:scale-90 transition-all hover:bg-slate-50"
+          >
+            <UserRound :size="19" />
+          </button>
+        </div>
       </header>
+
+      <!-- Banner Permintaan Izin Notifikasi HP -->
+      <div v-if="phonePermission === 'default'" class="mb-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 p-3.5 text-white shadow-lg shadow-amber-200/60 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2.5">
+          <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20 backdrop-blur-md text-white">
+            <BellRing :size="16" />
+          </div>
+          <div>
+            <p class="text-xs font-bold leading-tight">Aktifkan Notifikasi HP</p>
+            <p class="text-[10px] text-amber-100 mt-0.5">Dapatkan pengingat absensi & tugas di HP Anda.</p>
+          </div>
+        </div>
+        <button
+          @click="handleEnablePhoneNotification"
+          class="shrink-0 rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-amber-600 shadow-sm active:scale-95 transition-all"
+        >
+          Aktifkan
+        </button>
+      </div>
+
+      <!-- Banner Cards Pengingat Aktif (Top Priority Notification) -->
+      <div v-if="notifications.length > 0" class="mb-5 space-y-2">
+        <div
+          v-for="notif in notifications"
+          :key="notif.id"
+          class="rounded-2xl border p-4 shadow-sm transition-all flex items-start gap-3 relative overflow-hidden"
+          :class="notif.type === 'attendance_in' ? 'bg-amber-50/90 border-amber-200 text-amber-900' :
+                  notif.type === 'attendance_out' ? 'bg-blue-50/90 border-blue-200 text-blue-900' :
+                  'bg-teal-50/90 border-teal-200 text-teal-900'"
+        >
+          <div
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white shadow-sm"
+            :class="notif.type === 'attendance_in' ? 'bg-amber-500' :
+                    notif.type === 'attendance_out' ? 'bg-blue-600' : 'bg-teal-600'"
+          >
+            <component :is="notifIcon(notif.type)" :size="18" />
+          </div>
+          <div class="flex-1 min-w-0">
+            <h4 class="text-xs font-bold leading-tight">{{ notif.title }}</h4>
+            <p class="mt-1 text-[11px] leading-relaxed opacity-90 font-medium">{{ notif.body }}</p>
+            <button
+              @click="$router.push(notif.action_url)"
+              class="mt-2 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-wider underline hover:opacity-80"
+            >
+              Proses Sekarang <ChevronRight :size="12" />
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- Main Attendance Clock Card -->
       <section class="card-glass relative overflow-hidden p-5 mb-5">
@@ -424,6 +488,85 @@
         </div>
       </Transition>
 
+      <!-- Modal Notification Center / Drawer -->
+      <Transition name="modal">
+        <div v-if="isNotifModalOpen" class="fixed inset-0 z-[100] flex items-end justify-center bg-slate-900/40 backdrop-blur-sm px-4 pb-6 sm:items-center sm:pb-0">
+          <div class="absolute inset-0" @click="isNotifModalOpen = false"></div>
+          <div class="w-full max-w-md rounded-[32px] bg-white p-6 shadow-2xl relative z-10 max-h-[85vh] overflow-y-auto scrollbar-hide">
+            <button @click="isNotifModalOpen = false" class="absolute right-6 top-6 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
+              <X :size="18" />
+            </button>
+
+            <div class="mb-5 flex items-center gap-3 pr-10">
+              <div class="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                <Bell :size="20" />
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-900">Pusat Notifikasi</h3>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pengingat & Informasi</p>
+              </div>
+            </div>
+
+            <!-- Permission Status Box -->
+            <div class="mb-4 rounded-2xl bg-slate-50 border border-slate-100 p-3.5 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="h-2.5 w-2.5 rounded-full" :class="phonePermission === 'granted' ? 'bg-teal-500' : 'bg-amber-500'"></div>
+                <span class="text-xs font-semibold text-slate-700">
+                  {{ phonePermission === 'granted' ? 'Notifikasi HP Aktif' : 'Notifikasi HP Belum Aktif' }}
+                </span>
+              </div>
+              <button
+                v-if="phonePermission !== 'granted'"
+                @click="handleEnablePhoneNotification"
+                class="text-xs font-bold text-blue-600 hover:underline"
+              >
+                Aktifkan
+              </button>
+            </div>
+
+            <!-- Notification List -->
+            <div v-if="notifications.length === 0" class="py-10 text-center text-slate-400 space-y-2">
+              <Bell :size="36" class="mx-auto text-slate-300" />
+              <p class="text-xs font-bold text-slate-600">Tidak ada notifikasi baru</p>
+              <p class="text-[11px] text-slate-400">Semua tugas dan absensi Anda sudah up-to-date.</p>
+            </div>
+
+            <div v-else class="space-y-3">
+              <div
+                v-for="notif in notifications"
+                :key="notif.id"
+                class="rounded-2xl border p-4 shadow-sm transition-all flex items-start gap-3"
+                :class="notif.type === 'attendance_in' ? 'bg-amber-50/70 border-amber-200' :
+                        notif.type === 'attendance_out' ? 'bg-blue-50/70 border-blue-200' :
+                        'bg-teal-50/70 border-teal-200'"
+              >
+                <div
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-white shadow-sm"
+                  :class="notif.type === 'attendance_in' ? 'bg-amber-500' :
+                          notif.type === 'attendance_out' ? 'bg-blue-600' : 'bg-teal-600'"
+                >
+                  <component :is="notifIcon(notif.type)" :size="18" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="text-xs font-bold text-slate-900">{{ notif.title }}</h4>
+                  <p class="mt-1 text-[11px] text-slate-600 leading-relaxed font-medium">{{ notif.body }}</p>
+                  <button
+                    @click="isNotifModalOpen = false; $router.push(notif.action_url)"
+                    class="mt-2.5 inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3 py-1.5 text-[10px] font-bold text-white shadow-sm hover:bg-slate-800 active:scale-95 transition-all"
+                  >
+                    Buka Halaman <ChevronRight :size="12" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button @click="isNotifModalOpen = false" class="mt-6 w-full rounded-2xl bg-slate-100 py-3.5 text-xs font-bold text-slate-600 hover:bg-slate-200 transition-colors">
+              Tutup Notifikasi
+            </button>
+          </div>
+        </div>
+      </Transition>
+
       <BottomNav />
     </div>
   </div>
@@ -435,7 +578,7 @@ import { computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import {
   FileText, X, MapPin, ExternalLink, Fingerprint,
   CalendarCheck, Clock, LogOut, ChevronRight, CheckCircle2, UserRound, Package,
-  Users, History, Stethoscope, Palmtree
+  Users, History, Stethoscope, Palmtree, Bell, BellRing, Truck
 } from 'lucide-vue-next'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -443,8 +586,16 @@ import { useAuthStore } from '../stores/authStore'
 import { getAttendanceHistory, checkAttendanceStatus } from '../api/attendance'
 import type { AttendanceRecord } from '../api/attendance'
 import { getProfile } from '../api/profile'
+import { getNotifications, type AppNotification } from '../api/notification'
+import {
+  getPhoneNotificationPermission,
+  requestPhoneNotificationPermission,
+  syncAndTriggerPhoneReminders
+} from '../utils/phoneNotification'
+import { useToast } from '../composables/useToast'
 
 const authStore = useAuthStore()
+const { showToast } = useToast()
 
 const namaKaryawan = computed(() => authStore.userName)
 const inisial = computed(() => authStore.userInitials)
@@ -459,10 +610,49 @@ const isLoadingRiwayat = ref(true)
 const isLoadingCuti = ref(true)
 const sisaCuti = ref<number | null>(null)
 const waktuSekarang = ref(new Date())
+
+const notifications = ref<AppNotification[]>([])
+const isNotifModalOpen = ref(false)
+const phonePermission = ref(getPhoneNotificationPermission())
+
 let timer: number | undefined
+
+const fetchNotificationsData = async () => {
+  try {
+    const res = await getNotifications()
+    if (res.data?.success) {
+      notifications.value = res.data.data
+      await syncAndTriggerPhoneReminders(notifications.value)
+    }
+  } catch (err) {
+    console.error('Failed to load notifications:', err)
+  }
+}
+
+const handleEnablePhoneNotification = async () => {
+  const granted = await requestPhoneNotificationPermission()
+  phonePermission.value = getPhoneNotificationPermission()
+  if (granted) {
+    showToast('Notifikasi HP berhasil diaktifkan!', 'success')
+    await fetchNotificationsData()
+  } else {
+    showToast('Izin notifikasi tidak diberikan.', 'error')
+  }
+}
+
+const notifIcon = (type: string) => {
+  switch (type) {
+    case 'attendance_in': return Fingerprint
+    case 'attendance_out': return LogOut
+    case 'transport_task': return Truck
+    default: return Bell
+  }
+}
 
 onMounted(async () => {
   timer = window.setInterval(() => { waktuSekarang.value = new Date() }, 1000)
+
+  fetchNotificationsData()
 
   try {
     const statusRes = await checkAttendanceStatus()
