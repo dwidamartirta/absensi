@@ -28,8 +28,8 @@ export interface DailyTaskResponse {
  * Get list of daily tasks for the driver
  * GET /api/v1/auth/daily-tasks
  */
-export const getDailyTasks = () => {
-  return api.get<DailyTaskResponse>('/auth/daily-tasks')
+export const getDailyTasks = (params?: { date?: string; status?: string }) => {
+  return api.get<DailyTaskResponse>('/auth/daily-tasks', { params })
 }
 
 /**

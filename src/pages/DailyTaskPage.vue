@@ -18,18 +18,58 @@
       </div>
     </header>
 
-    <main class="mx-auto max-w-md px-4 pt-6">
-      <!-- Welcome Card -->
-      <div class="relative mb-8 overflow-hidden rounded-[32px] bg-gradient-to-br from-blue-700 to-blue-500 p-6 text-white shadow-xl shadow-blue-200">
-        <div class="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-2xl"></div>
-        <div class="relative z-10">
-          <p class="text-[10px] font-black uppercase tracking-[0.2em] text-blue-100/80 mb-2">Semangat Bekerja!</p>
-          <h2 class="text-xl font-black leading-tight">Halo, {{ authStore.userName.split(' ')[0] }}</h2>
-          <p class="mt-2 text-xs font-medium text-blue-50/80 leading-relaxed">
-            Periksa jadwal pengangkutan Anda hari ini dan pastikan semua tugas terselesaikan.
-          </p>
+    <main class="mx-auto max-w-md px-4 pt-4">
+
+      <!-- Filter Bar Section -->
+      <section class="mb-5 space-y-3 rounded-2xl bg-white p-4 border border-slate-200 shadow-sm">
+        <!-- Filter Tanggal -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <Calendar :size="13" class="text-blue-600" /> Filter Tanggal
+            </label>
+            <div class="flex items-center gap-2">
+              <button
+                @click="setTodayDate"
+                class="text-[10px] font-bold text-blue-600 hover:underline"
+              >
+                Hari Ini
+              </button>
+              <button
+                v-if="selectedDate"
+                @click="resetDateFilter"
+                class="text-[10px] font-bold text-rose-500 hover:underline flex items-center gap-0.5"
+              >
+                <RotateCcw :size="10" /> Reset
+              </button>
+            </div>
+          </div>
+          <input
+            type="date"
+            v-model="selectedDate"
+            @change="fetchData"
+            class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-semibold text-slate-800 focus:border-blue-500 focus:bg-white focus:outline-none transition-all"
+          />
         </div>
-      </div>
+
+        <!-- Filter Status (Pill options) -->
+        <div>
+          <label class="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5 flex items-center gap-1.5">
+            <Filter :size="13" class="text-blue-600" /> Filter Status
+          </label>
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide">
+            <button
+              v-for="st in statusOptions"
+              :key="st.key"
+              @click="setFilterStatus(st.key)"
+              class="shrink-0 rounded-full px-3 py-1.5 text-[11px] font-bold transition-all active:scale-95"
+              :class="selectedStatus === st.key ? 'bg-blue-600 text-white shadow-sm shadow-blue-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'"
+            >
+              {{ st.label }}
+            </button>
+          </div>
+        </div>
+      </section>
 
       <!-- Loading State -->
       <div v-if="isLoading" class="space-y-4">
@@ -37,14 +77,21 @@
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="tasks.length === 0" class="flex flex-col items-center justify-center py-20 text-center">
-        <div class="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-slate-300">
-          <ClipboardList :size="40" />
+      <div v-else-if="tasks.length === 0" class="flex flex-col items-center justify-center py-16 text-center">
+        <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-300">
+          <ClipboardList :size="32" />
         </div>
-        <h3 class="text-base font-bold text-slate-900">Belum Ada Tugas</h3>
-        <p class="mt-1 text-sm text-slate-500 px-10">
-          Saat ini belum ada tugas pengangkutan yang ditugaskan kepada Anda.
+        <h3 class="text-sm font-bold text-slate-900">Tidak Ada Tugas</h3>
+        <p class="mt-1 text-xs text-slate-500 px-8">
+          Belum ada tugas pengangkutan yang sesuai dengan filter yang Anda pilih.
         </p>
+        <button
+          v-if="selectedDate || selectedStatus !== 'all'"
+          @click="resetAllFilters"
+          class="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800"
+        >
+          Reset Semua Filter
+        </button>
       </div>
 
       <!-- Task List -->
@@ -217,16 +264,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '../stores/authStore'
 import { getDailyTasks, updateTaskStatus, type DailyTask } from '../api/dailyTask'
 import { useToast } from '../composables/useToast'
 import BottomNav from '../components/BottomNav.vue'
 import { 
-  ArrowLeft, Truck, ClipboardList, CreditCard, Tag, X, User, Users
+  ArrowLeft, Truck, ClipboardList, CreditCard, Tag, X, User, Users,
+  Calendar, Filter, RotateCcw
 } from 'lucide-vue-next'
 
 const router = useRouter()
-const authStore = useAuthStore()
 const { showToast } = useToast()
 
 const tasks = ref<DailyTask[]>([])
@@ -234,10 +280,50 @@ const isLoading = ref(true)
 const isModalOpen = ref(false)
 const selectedTask = ref<DailyTask | null>(null)
 
+const selectedStatus = ref<string>('all')
+const selectedDate = ref<string>('')
+
+const statusOptions = [
+  { key: 'all', label: 'Semua Status' },
+  { key: 'planned', label: 'Direncanakan' },
+  { key: 'confirmed', label: 'Berjalan' },
+  { key: 'completed', label: 'Selesai' },
+  { key: 'cancelled', label: 'Dibatalkan' },
+]
+
+const setFilterStatus = (stKey: string) => {
+  selectedStatus.value = stKey
+  fetchData()
+}
+
+const setTodayDate = () => {
+  const now = new Date()
+  selectedDate.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  fetchData()
+}
+
+const resetDateFilter = () => {
+  selectedDate.value = ''
+  fetchData()
+}
+
+const resetAllFilters = () => {
+  selectedStatus.value = 'all'
+  selectedDate.value = ''
+  fetchData()
+}
+
 const fetchData = async () => {
   isLoading.value = true
   try {
-    const res = await getDailyTasks()
+    const params: any = {}
+    if (selectedStatus.value && selectedStatus.value !== 'all') {
+      params.status = selectedStatus.value
+    }
+    if (selectedDate.value) {
+      params.date = selectedDate.value
+    }
+    const res = await getDailyTasks(params)
     tasks.value = res.data.data
   } catch (error) {
     console.error('Failed to fetch tasks:', error)
