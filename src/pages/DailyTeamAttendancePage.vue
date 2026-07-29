@@ -221,9 +221,9 @@
 
     <!-- Detail Modal -->
     <Transition name="modal">
-      <div v-if="selectedEmployee" class="modal-overlay" @click.self="selectedEmployee = null">
+      <div v-if="selectedEmployee" class="modal-overlay" @click.self="closeModal">
         <div class="w-full max-w-md rounded-[28px] bg-white p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto scrollbar-hide">
-          <button @click="selectedEmployee = null" class="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
+          <button @click="closeModal" class="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
             <X :size="16" />
           </button>
 
@@ -268,6 +268,25 @@
               <p class="text-xs font-medium text-slate-700 italic mt-1 font-mono">"{{ selectedEmployee.attendance_detail }}"</p>
             </div>
 
+            <!-- Maps Lokasi Absen -->
+            <div v-if="selectedEmployee.lat_in && selectedEmployee.long_in" class="card p-3.5 space-y-2">
+              <div class="flex items-center justify-between">
+                <p class="text-[9px] font-bold uppercase text-slate-400 flex items-center gap-1">
+                  <MapPin :size="12" class="text-blue-600" />
+                  <span>Lokasi Absen</span>
+                </p>
+                <a
+                  :href="`https://maps.google.com/?q=${selectedEmployee.lat_in},${selectedEmployee.long_in}`"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-[10px] font-bold text-blue-600 flex items-center gap-0.5 hover:underline"
+                >
+                  Google Maps <ExternalLink :size="10" />
+                </a>
+              </div>
+              <div id="teamMap" class="h-44 w-full rounded-xl border border-slate-100 overflow-hidden shadow-inner"></div>
+            </div>
+
             <div v-if="selectedEmployee.email" class="card p-3 flex items-center justify-between">
               <span class="text-xs text-slate-600 truncate">{{ selectedEmployee.email }}</span>
               <a
@@ -279,7 +298,7 @@
             </div>
           </div>
 
-          <button @click="selectedEmployee = null" class="mt-5 w-full rounded-2xl bg-slate-900 py-3.5 text-xs font-bold text-white hover:bg-slate-800 active:scale-[0.98] transition-all">
+          <button @click="closeModal" class="mt-5 w-full rounded-2xl bg-slate-900 py-3.5 text-xs font-bold text-white hover:bg-slate-800 active:scale-[0.98] transition-all">
             Tutup
           </button>
         </div>
@@ -291,11 +310,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import {
   ArrowLeft, Users, Calendar, Search, X, AlertTriangle,
-  UserCheck, UserX, FileText, Clock, ChevronRight
+  UserCheck, UserX, FileText, Clock, ChevronRight, MapPin, ExternalLink
 } from 'lucide-vue-next'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import { getDailyTeamAttendance, getAbsentEmployees } from '../api/attendance'
 import type { DailyTeamEmployee, DailyTeamSummary } from '../api/attendance'
 import BottomNav from '../components/BottomNav.vue'
@@ -364,7 +385,7 @@ const fallbackFetchAbsent = async () => {
   try {
     const res = await getAbsentEmployees({ date: selectedDate.value })
     if (res.data?.success) {
-      let absentList = res.data.data.map(emp => ({
+      let absentList: DailyTeamEmployee[] = res.data.data.map(emp => ({
         employee_id: emp.id,
         nik_karyawan: emp.nik_karyawan,
         full_name: emp.full_name,
@@ -373,6 +394,10 @@ const fallbackFetchAbsent = async () => {
         status: 'absent',
         time_in: null,
         time_out: null,
+        lat_in: null,
+        long_in: null,
+        lat_out: null,
+        long_out: null,
         attendance_detail: null,
         attachment: null
       }))
@@ -506,7 +531,48 @@ const formatDateLabel = (dateStr: string) => {
   }
 }
 
-const openModal = (emp: DailyTeamEmployee) => {
+let teamMapInstance: L.Map | null = null
+
+const openModal = async (emp: DailyTeamEmployee) => {
   selectedEmployee.value = emp
+  await nextTick()
+  if (emp.lat_in && emp.long_in) {
+    initTeamMap(Number(emp.lat_in), Number(emp.long_in))
+  }
+}
+
+const closeModal = () => {
+  if (teamMapInstance) {
+    teamMapInstance.remove()
+    teamMapInstance = null
+  }
+  selectedEmployee.value = null
+}
+
+const initTeamMap = (lat: number, lng: number) => {
+  const el = document.getElementById('teamMap')
+  if (!el) return
+  if (teamMapInstance) {
+    teamMapInstance.remove()
+    teamMapInstance = null
+  }
+  teamMapInstance = L.map(el, {
+    zoomControl: false,
+    attributionControl: false
+  }).setView([lat, lng], 15)
+
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(teamMapInstance)
+
+  L.marker([lat, lng], {
+    icon: L.divIcon({
+      className: '',
+      html: '<div style="width:22px;height:22px;border-radius:50%;background:#2563eb;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.3)"></div>',
+      iconSize: [22, 22]
+    })
+  }).addTo(teamMapInstance)
+
+  setTimeout(() => {
+    teamMapInstance?.invalidateSize()
+  }, 200)
 }
 </script>

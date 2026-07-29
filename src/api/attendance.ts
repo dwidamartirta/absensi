@@ -140,6 +140,10 @@ export interface DailyTeamEmployee {
   status: string
   time_in: string | null
   time_out: string | null
+  lat_in: number | null
+  long_in: number | null
+  lat_out: number | null
+  long_out: number | null
   attendance_detail: string | null
   attachment: string | null
 }
