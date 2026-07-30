@@ -287,15 +287,7 @@
               <div id="teamMap" class="h-44 w-full rounded-xl border border-slate-100 overflow-hidden shadow-inner"></div>
             </div>
 
-            <div v-if="selectedEmployee.email" class="card p-3 flex items-center justify-between">
-              <span class="text-xs text-slate-600 truncate">{{ selectedEmployee.email }}</span>
-              <a
-                :href="'mailto:' + selectedEmployee.email"
-                class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-[10px] font-bold hover:bg-blue-100 transition-colors"
-              >
-                Email
-              </a>
-            </div>
+
           </div>
 
           <button @click="closeModal" class="mt-5 w-full rounded-2xl bg-slate-900 py-3.5 text-xs font-bold text-white hover:bg-slate-800 active:scale-[0.98] transition-all">

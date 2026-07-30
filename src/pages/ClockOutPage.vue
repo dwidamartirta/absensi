@@ -8,12 +8,12 @@
 
     <div id="mapOut" class="absolute inset-0 z-0 bg-slate-200"></div>
 
-    <!-- Calibration Button — pojok kanan bawah map -->
+    <!-- Calibration Button — pojok kanan atas bottom sheet / bottom map -->
     <button 
       @click="recalibrateLocation" 
       :disabled="isCalibrating"
-      class="absolute right-4 z-20 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/95 backdrop-blur-sm shadow-lg border border-slate-200/60 text-blue-600 active:scale-90 transition-all duration-200 disabled:opacity-60"
-      :style="{ bottom: (sheetCollapsed ? '80px' : '480px'), transition: 'bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)' }"
+      class="absolute right-4 z-30 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/95 backdrop-blur-sm shadow-lg border border-slate-200/60 text-blue-600 active:scale-90 transition-all duration-200 disabled:opacity-60"
+      :style="{ bottom: sheetCollapsed ? '120px' : 'min(480px, calc(85vh + 16px))', transition: 'bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1)' }"
       title="Kalibrasi Ulang Lokasi"
     >
       <LocateFixed :size="22" :class="isCalibrating ? 'animate-spin' : ''" />
