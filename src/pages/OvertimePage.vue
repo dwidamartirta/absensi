@@ -32,51 +32,76 @@
     </header>
 
     <!-- ========================================== -->
-    <!-- APPROVER VIEW (CLEAN & ELEGANT DESIGN)     -->
+    <!-- APPROVER VIEW (MODERN & VIBRANT BALANCED)  -->
     <!-- ========================================== -->
     <div v-if="isApprover && viewMode === 'approval'" class="mx-auto max-w-md px-4 pt-4 pb-4">
 
+      <!-- Summary Stat Cards (Vibrant & Clean) -->
+      <div class="grid grid-cols-3 gap-2.5 mb-4">
+        <div class="card p-3 text-center border-amber-200/50 bg-gradient-to-b from-amber-50/50 to-white relative overflow-hidden">
+          <div class="flex items-center justify-center mx-auto mb-1 h-8 w-8 rounded-xl bg-amber-100/80 text-amber-600">
+            <Clock3 :size="16" />
+          </div>
+          <p class="text-lg font-black text-amber-600 leading-tight">{{ pendingCount }}</p>
+          <p class="text-[9px] font-bold uppercase text-slate-400 tracking-wider mt-0.5">Menunggu</p>
+        </div>
+        <div class="card p-3 text-center border-emerald-200/50 bg-gradient-to-b from-emerald-50/50 to-white relative overflow-hidden">
+          <div class="flex items-center justify-center mx-auto mb-1 h-8 w-8 rounded-xl bg-emerald-100/80 text-emerald-600">
+            <CheckCircle2 :size="16" />
+          </div>
+          <p class="text-lg font-black text-emerald-600 leading-tight">{{ approvedCount }}</p>
+          <p class="text-[9px] font-bold uppercase text-slate-400 tracking-wider mt-0.5">Disetujui</p>
+        </div>
+        <div class="card p-3 text-center border-rose-200/50 bg-gradient-to-b from-rose-50/50 to-white relative overflow-hidden">
+          <div class="flex items-center justify-center mx-auto mb-1 h-8 w-8 rounded-xl bg-rose-100/80 text-rose-600">
+            <XCircle :size="16" />
+          </div>
+          <p class="text-lg font-black text-rose-600 leading-tight">{{ rejectedCount }}</p>
+          <p class="text-[9px] font-bold uppercase text-slate-400 tracking-wider mt-0.5">Ditolak</p>
+        </div>
+      </div>
+
       <!-- Navigation Segment Tabs -->
-      <div class="flex bg-slate-100 p-1 rounded-2xl mb-4 border border-slate-200/60">
+      <div class="flex bg-slate-200/60 p-1 rounded-2xl mb-4 border border-slate-200">
         <button
           @click="activeTab = 'pending'"
-          class="flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+          class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
           :class="activeTab === 'pending'
-            ? 'bg-white text-slate-900 shadow-sm'
+            ? 'bg-amber-500 text-white shadow-md shadow-amber-200'
             : 'text-slate-500 hover:text-slate-800'"
         >
-          <span>Menunggu</span>
-          <span v-if="pendingCount > 0" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white"
+          <span>Pengajuan</span>
+          <span v-if="pendingCount > 0" class="px-1.5 py-0.5 rounded-full text-[10px] font-black bg-white text-amber-600 shadow-sm"
           >{{ pendingCount }}</span>
         </button>
         <button
           @click="activeTab = 'history'"
-          class="flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
+          class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
           :class="activeTab === 'history'
-            ? 'bg-white text-slate-900 shadow-sm'
+            ? 'bg-slate-900 text-white shadow-md'
             : 'text-slate-500 hover:text-slate-800'"
         >
-          <span>Riwayat Persetujuan</span>
+          <span>Histori</span>
         </button>
       </div>
 
       <!-- Filter Bar (History only) -->
-      <div v-if="activeTab === 'history'" class="flex items-center gap-2 mb-4">
+      <div v-if="activeTab === 'history'" class="flex items-center gap-2 mb-4 bg-white p-2 rounded-2xl border border-slate-100 shadow-sm">
         <div class="relative flex-1">
-          <select v-model="approvalFilters.status" @change="fetchApprovalData" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-slate-400">
+          <select v-model="approvalFilters.status" @change="fetchApprovalData" class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-amber-400">
             <option value="">Semua Status</option>
             <option value="approved">Disetujui</option>
             <option value="rejected">Ditolak</option>
           </select>
         </div>
         <div class="relative flex-1">
-          <select v-model="approvalFilters.month" @change="fetchApprovalData" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-slate-400">
+          <select v-model="approvalFilters.month" @change="fetchApprovalData" class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-amber-400">
             <option value="">Semua Bulan</option>
             <option v-for="m in months" :key="m.val" :value="m.val">{{ m.label }}</option>
           </select>
         </div>
         <div class="relative w-20">
-          <select v-model="approvalFilters.year" @change="fetchApprovalData" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-slate-400">
+          <select v-model="approvalFilters.year" @change="fetchApprovalData" class="w-full appearance-none bg-slate-50 border border-slate-200 rounded-xl px-2 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-amber-400">
             <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
           </select>
         </div>
@@ -94,81 +119,90 @@
       </div>
 
       <!-- Error State -->
-      <div v-else-if="approvalError" class="bg-white border border-slate-200 rounded-2xl p-6 text-center">
+      <div v-else-if="approvalError" class="bg-white border border-rose-100 rounded-2xl p-6 text-center">
         <p class="text-xs text-rose-500 font-medium mb-2">{{ approvalError }}</p>
-        <button @click="fetchApprovalData" class="text-xs text-slate-900 font-bold underline">Muat Ulang</button>
+        <button @click="fetchApprovalData" class="text-xs text-amber-600 font-bold underline">Coba Lagi</button>
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="displayedApprovalList.length === 0" class="bg-white border border-slate-200 rounded-2xl p-8 text-center my-2">
-        <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
-          <CheckCircle2 :size="24" />
+      <div v-else-if="displayedApprovalList.length === 0" class="bg-white border border-slate-100 rounded-2xl p-8 text-center my-2 shadow-sm">
+        <div class="w-14 h-14 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center mx-auto mb-3 border border-amber-100">
+          <CheckCircle2 :size="28" />
         </div>
         <h3 class="text-xs font-bold text-slate-800">
           {{ activeTab === 'pending' ? 'Tidak Ada Pengajuan Lembur' : 'Belum Ada Riwayat' }}
         </h3>
-        <p class="text-[11px] text-slate-400 mt-1 max-w-[200px] mx-auto">
+        <p class="text-[11px] text-slate-400 mt-1 max-w-[220px] mx-auto leading-relaxed">
           {{ activeTab === 'pending'
               ? 'Semua pengajuan lembur tim telah selesai diproses.'
               : 'Belum ada data pengajuan yang selesai ditinjau.' }}
         </p>
       </div>
 
-      <!-- Clean Cards List -->
+      <!-- Cards List (Vibrant & Clean Accent) -->
       <div v-else class="space-y-3">
         <div
           v-for="item in displayedApprovalList"
           :key="item.id"
           @click="openApprovalDetail(item)"
-          class="bg-white border border-slate-200/80 rounded-2xl p-4 transition-all hover:border-slate-300 active:scale-[0.99] cursor-pointer shadow-sm"
+          class="bg-white border border-slate-100 rounded-2xl p-4 transition-all hover:border-amber-200 active:scale-[0.985] cursor-pointer shadow-sm relative overflow-hidden"
         >
-          <!-- Top Row: Name & Status -->
-          <div class="flex items-start justify-between gap-2 mb-2">
-            <div>
-              <h4 class="text-xs font-bold text-slate-900 leading-tight">{{ item.employee_name }}</h4>
-              <p class="text-[10px] font-semibold text-slate-400 mt-0.5">{{ item.position }}</p>
+          <!-- Accent Top Bar -->
+          <div class="absolute top-0 left-0 right-0 h-1"
+            :class="{
+              'bg-amber-400': item.status === 'pending',
+              'bg-emerald-500': item.status === 'approved',
+              'bg-rose-500': item.status === 'rejected'
+            }"></div>
+
+          <!-- Top Row: Name, Position & Status -->
+          <div class="flex items-start justify-between gap-2 mb-3">
+            <div class="flex items-center gap-3">
+              <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white text-xs font-black shadow-sm"
+                :style="{ background: stringToColor(item.employee_name) }">
+                {{ getInitials(item.employee_name) }}
+              </div>
+              <div>
+                <h4 class="text-xs font-black text-slate-900 leading-tight">{{ item.employee_name }}</h4>
+                <p class="text-[10px] font-semibold text-slate-400 mt-0.5">{{ item.position }}</p>
+              </div>
             </div>
-            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider"
-              :class="{
-                'bg-amber-50 text-amber-700 border border-amber-200/60': item.status === 'pending',
-                'bg-emerald-50 text-emerald-700 border border-emerald-200/60': item.status === 'approved',
-                'bg-rose-50 text-rose-700 border border-rose-200/60': item.status === 'rejected'
-              }">
+            <span class="badge shrink-0" :class="statusBadge(item.status)">
               {{ statusLabel(item.status) }}
             </span>
           </div>
 
           <!-- Middle Row: Date & Time Info -->
-          <div class="bg-slate-50 rounded-xl p-2.5 flex items-center justify-between text-xs text-slate-600 mb-3 border border-slate-100">
+          <div class="bg-slate-50 rounded-xl p-2.5 flex items-center justify-between text-xs text-slate-600 mb-2 border border-slate-100/80">
             <div class="flex items-center gap-1.5">
-              <CalendarDays :size="13" class="text-slate-400" />
-              <span class="font-medium text-[11px]">{{ formatFullDate(item.date) }}</span>
+              <CalendarDays :size="13" class="text-amber-500" />
+              <span class="font-bold text-[11px] text-slate-800">{{ formatFullDate(item.date) }}</span>
             </div>
             <div class="flex items-center gap-1">
               <Clock :size="13" class="text-slate-400" />
-              <span class="font-semibold text-[11px] text-slate-800">{{ item.start_time?.toString().slice(0,5) }} - {{ item.end_time?.toString().slice(0,5) }}</span>
-              <span v-if="item.duration" class="text-[10px] font-bold text-slate-400 ml-1">({{ item.duration }}j)</span>
+              <span class="font-bold text-[11px] text-slate-800">{{ item.start_time?.toString().slice(0,5) }} – {{ item.end_time?.toString().slice(0,5) }}</span>
+              <span v-if="item.duration" class="text-[10px] font-black text-amber-600 ml-1">({{ item.duration }}j)</span>
             </div>
           </div>
 
-          <!-- Reason snippet if present -->
+          <!-- Reason snippet -->
           <p v-if="item.reason" class="text-[11px] text-slate-500 line-clamp-1 mb-3 italic px-0.5">
             "{{ item.reason }}"
           </p>
 
           <!-- Bottom Action Buttons (Pending state) -->
-          <div v-if="item.status === 'pending'" class="flex items-center gap-2 pt-1 border-t border-slate-100">
+          <div v-if="item.status === 'pending'" class="flex items-center gap-2 pt-2 border-t border-slate-100">
             <button
               @click.stop="handleQuickApprove(item)"
-              class="flex-1 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 active:scale-[0.98] transition-all flex items-center justify-center gap-1 shadow-sm"
+              class="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white text-xs font-black hover:bg-emerald-600 active:scale-[0.97] transition-all flex items-center justify-center gap-1.5 shadow-md shadow-emerald-100"
             >
-              <Check :size="14" /> Setujui
+              <Check :size="15" /> Setujui
             </button>
             <button
               @click.stop="handleQuickReject(item)"
-              class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 active:scale-[0.98] transition-all flex items-center justify-center gap-1"
+              class="flex-1 py-2.5 rounded-xl bg-rose-50 text-rose-600 border border-rose-200 text-xs font-black hover:bg-rose-100 active:scale-[0.97] transition-all flex items-center justify-center gap-1.5"
             >
-              <X :size="14" /> Tolak
+              <X :size="15" /> Tolak
             </button>
           </div>
         </div>
@@ -512,6 +546,22 @@ const getAttachmentUrl = (path: string) => {
   return `${base}/storage/${path}`
 }
 
+const getInitials = (name: string) => {
+  if (!name || name === '-') return '?'
+  return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()
+}
+
+const stringToColor = (str: string) => {
+  const colors = [
+    '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#ef4444',
+    '#f97316', '#eab308', '#22c55e', '#14b8a6', '#06b6d4',
+    '#3b82f6', '#2563eb', '#7c3aed', '#a855f7', '#d946ef',
+  ]
+  let hash = 0
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash)
+  return colors[Math.abs(hash) % colors.length]
+}
+
 // =========================================================================
 // Toast
 // =========================================================================
@@ -591,6 +641,8 @@ const processAction = ref<'approve' | 'reject'>('approve')
 const approvalFilters = ref({ status: '' as string, month: '' as number | '', year: currentYear as number })
 
 const pendingCount = computed(() => approvalList.value.filter(i => i.status === 'pending').length)
+const approvedCount = computed(() => approvalList.value.filter(i => i.status === 'approved').length)
+const rejectedCount = computed(() => approvalList.value.filter(i => i.status === 'rejected').length)
 
 const displayedApprovalList = computed(() => {
   if (activeTab.value === 'pending') {
