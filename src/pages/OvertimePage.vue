@@ -5,15 +5,15 @@
     <header class="page-header">
       <div class="page-header-inner">
         <div class="flex items-center gap-3">
-          <div class="icon-badge h-10 w-10 rounded-xl" :class="(isApprover && viewMode === 'approval') ? 'icon-badge-teal' : 'icon-badge-blue'">
+          <div class="h-10 w-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-sm">
             <component :is="(isApprover && viewMode === 'approval') ? ShieldCheck : BadgePlus" :size="20" />
           </div>
           <div>
-            <h1 class="text-[15px] font-black tracking-tight leading-none text-slate-900">
+            <h1 class="text-[15px] font-bold tracking-tight leading-none text-slate-900">
               {{ (isApprover && viewMode === 'approval') ? 'Persetujuan Lembur' : 'Pengajuan Lembur' }}
             </h1>
-            <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
-              {{ (isApprover && viewMode === 'approval') ? 'Kelola Pengajuan Tim' : 'Kelola Waktu Kerja' }}
+            <p class="text-[10px] font-semibold text-slate-400 mt-1 uppercase tracking-wider">
+              {{ (isApprover && viewMode === 'approval') ? 'Persetujuan Tim' : 'Kelola Waktu Kerja' }}
             </p>
           </div>
         </div>
@@ -22,161 +22,151 @@
         <button
           v-if="isApprover"
           @click="viewMode = viewMode === 'approval' ? 'form' : 'approval'"
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all shadow-sm"
-          :class="viewMode === 'approval' ? 'bg-slate-900 border-slate-800 text-white' : 'bg-teal-50 border-teal-200 text-teal-700'"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-semibold transition-all"
+          :class="viewMode === 'approval' ? 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200' : 'bg-slate-900 border-slate-800 text-white'"
         >
-          <component :is="viewMode === 'approval' ? BadgePlus : ShieldCheck" :size="14" />
-          {{ viewMode === 'approval' ? 'Isi Form' : 'Mode Approve' }}
+          <component :is="viewMode === 'approval' ? BadgePlus : ShieldCheck" :size="13" />
+          {{ viewMode === 'approval' ? 'Isi Form' : 'Approve Mode' }}
         </button>
       </div>
     </header>
 
     <!-- ========================================== -->
-    <!-- APPROVER VIEW (HSE, IT, ADMIN, DIREKTUR)   -->
+    <!-- APPROVER VIEW (CLEAN & ELEGANT DESIGN)     -->
     <!-- ========================================== -->
-    <div v-if="isApprover && viewMode === 'approval'" class="mx-auto max-w-md px-4 pt-5 pb-4">
+    <div v-if="isApprover && viewMode === 'approval'" class="mx-auto max-w-md px-4 pt-4 pb-4">
 
-      <!-- Summary Cards -->
-      <div class="grid grid-cols-3 gap-2.5 mb-5">
-        <div class="card p-3 text-center">
-          <div class="flex items-center justify-center mx-auto mb-1.5 h-9 w-9 rounded-xl bg-amber-50 border border-amber-100">
-            <Clock3 :size="16" class="text-amber-500" />
-          </div>
-          <p class="text-lg font-black text-amber-600 leading-none">{{ pendingCount }}</p>
-          <p class="text-[9px] font-bold uppercase text-slate-400 mt-1 tracking-wide">Menunggu</p>
-        </div>
-        <div class="card p-3 text-center">
-          <div class="flex items-center justify-center mx-auto mb-1.5 h-9 w-9 rounded-xl bg-emerald-50 border border-emerald-100">
-            <CheckCircle2 :size="16" class="text-emerald-500" />
-          </div>
-          <p class="text-lg font-black text-emerald-600 leading-none">{{ approvedCount }}</p>
-          <p class="text-[9px] font-bold uppercase text-slate-400 mt-1 tracking-wide">Disetujui</p>
-        </div>
-        <div class="card p-3 text-center">
-          <div class="flex items-center justify-center mx-auto mb-1.5 h-9 w-9 rounded-xl bg-rose-50 border border-rose-100">
-            <XCircle :size="16" class="text-rose-500" />
-          </div>
-          <p class="text-lg font-black text-rose-600 leading-none">{{ rejectedCount }}</p>
-          <p class="text-[9px] font-bold uppercase text-slate-400 mt-1 tracking-wide">Ditolak</p>
-        </div>
-      </div>
-
-      <!-- Tabs -->
-      <div class="flex bg-white rounded-2xl border border-slate-100 p-1 mb-4 shadow-sm">
+      <!-- Navigation Segment Tabs -->
+      <div class="flex bg-slate-100 p-1 rounded-2xl mb-4 border border-slate-200/60">
         <button
           @click="activeTab = 'pending'"
-          class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200"
+          class="flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
           :class="activeTab === 'pending'
-            ? 'bg-amber-500 text-white shadow-md shadow-amber-200'
-            : 'text-slate-400 hover:text-slate-600'"
+            ? 'bg-white text-slate-900 shadow-sm'
+            : 'text-slate-500 hover:text-slate-800'"
         >
-          Pengajuan
-          <span v-if="pendingCount > 0" class="ml-1 inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full text-[9px] font-black"
-            :class="activeTab === 'pending' ? 'bg-white/30 text-white' : 'bg-amber-100 text-amber-600'"
+          <span>Menunggu</span>
+          <span v-if="pendingCount > 0" class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white"
           >{{ pendingCount }}</span>
         </button>
         <button
           @click="activeTab = 'history'"
-          class="flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200"
+          class="flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5"
           :class="activeTab === 'history'
-            ? 'bg-slate-800 text-white shadow-md'
-            : 'text-slate-400 hover:text-slate-600'"
+            ? 'bg-white text-slate-900 shadow-sm'
+            : 'text-slate-500 hover:text-slate-800'"
         >
-          Histori
+          <span>Riwayat Persetujuan</span>
         </button>
       </div>
 
-      <!-- Filter (History only) -->
-      <section v-if="activeTab === 'history'" class="card p-3.5 mb-4">
-        <div class="flex items-center gap-2 mb-3">
-          <Filter :size="14" class="text-teal-500" />
-          <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Filter Data</span>
+      <!-- Filter Bar (History only) -->
+      <div v-if="activeTab === 'history'" class="flex items-center gap-2 mb-4">
+        <div class="relative flex-1">
+          <select v-model="approvalFilters.status" @change="fetchApprovalData" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-slate-400">
+            <option value="">Semua Status</option>
+            <option value="approved">Disetujui</option>
+            <option value="rejected">Ditolak</option>
+          </select>
         </div>
-        <div class="grid grid-cols-3 gap-2">
-          <div>
-            <select v-model="approvalFilters.status" @change="fetchApprovalData" class="input-base py-2 text-[11px]">
-              <option value="">Semua</option>
-              <option value="approved">Disetujui</option>
-              <option value="rejected">Ditolak</option>
-            </select>
-          </div>
-          <div>
-            <select v-model="approvalFilters.month" @change="fetchApprovalData" class="input-base py-2 text-[11px]">
-              <option value="">Bulan</option>
-              <option v-for="m in months" :key="m.val" :value="m.val">{{ m.label }}</option>
-            </select>
-          </div>
-          <div>
-            <select v-model="approvalFilters.year" @change="fetchApprovalData" class="input-base py-2 text-[11px]">
-              <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
-            </select>
-          </div>
+        <div class="relative flex-1">
+          <select v-model="approvalFilters.month" @change="fetchApprovalData" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-slate-400">
+            <option value="">Semua Bulan</option>
+            <option v-for="m in months" :key="m.val" :value="m.val">{{ m.label }}</option>
+          </select>
         </div>
-      </section>
-
-      <!-- Loading -->
-      <div v-if="isApprovalLoading" class="space-y-2.5">
-        <div v-for="i in 4" :key="i" class="skeleton h-[76px] w-full rounded-2xl"></div>
+        <div class="relative w-20">
+          <select v-model="approvalFilters.year" @change="fetchApprovalData" class="w-full appearance-none bg-white border border-slate-200 rounded-xl px-2.5 py-2 text-xs font-semibold text-slate-700 outline-none focus:border-slate-400">
+            <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
+          </select>
+        </div>
       </div>
 
-      <!-- Error -->
-      <div v-else-if="approvalError" class="empty-state py-8">
-        <div class="empty-state-icon w-14 h-14"><AlertCircle :size="28" /></div>
-        <p class="text-xs text-rose-500 font-medium">{{ approvalError }}</p>
-        <button @click="fetchApprovalData" class="mt-2 text-[11px] text-teal-500 font-bold underline">Coba lagi</button>
+      <!-- Loading State -->
+      <div v-if="isApprovalLoading" class="space-y-3">
+        <div v-for="i in 3" :key="i" class="bg-white border border-slate-100 rounded-2xl p-4 space-y-2 shadow-sm">
+          <div class="flex justify-between items-center">
+            <div class="h-4 w-32 skeleton rounded"></div>
+            <div class="h-4 w-16 skeleton rounded-full"></div>
+          </div>
+          <div class="h-3 w-48 skeleton rounded"></div>
+        </div>
       </div>
 
-      <!-- Empty -->
-      <div v-else-if="displayedApprovalList.length === 0" class="empty-state py-10">
-        <div class="empty-state-icon w-16 h-16">
-          <component :is="activeTab === 'pending' ? Clock3 : CheckCircle2" :size="32" />
+      <!-- Error State -->
+      <div v-else-if="approvalError" class="bg-white border border-slate-200 rounded-2xl p-6 text-center">
+        <p class="text-xs text-rose-500 font-medium mb-2">{{ approvalError }}</p>
+        <button @click="fetchApprovalData" class="text-xs text-slate-900 font-bold underline">Muat Ulang</button>
+      </div>
+
+      <!-- Empty State -->
+      <div v-else-if="displayedApprovalList.length === 0" class="bg-white border border-slate-200 rounded-2xl p-8 text-center my-2">
+        <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto mb-3">
+          <CheckCircle2 :size="24" />
         </div>
-        <h3 class="empty-state-title">{{ activeTab === 'pending' ? 'Tidak Ada Pengajuan' : 'Belum Ada Histori' }}</h3>
-        <p class="empty-state-desc">
+        <h3 class="text-xs font-bold text-slate-800">
+          {{ activeTab === 'pending' ? 'Tidak Ada Pengajuan Lembur' : 'Belum Ada Riwayat' }}
+        </h3>
+        <p class="text-[11px] text-slate-400 mt-1 max-w-[200px] mx-auto">
           {{ activeTab === 'pending'
-              ? 'Semua pengajuan lembur sudah diproses.'
-              : 'Belum ada data lembur yang diproses.' }}
+              ? 'Semua pengajuan lembur tim telah selesai diproses.'
+              : 'Belum ada data pengajuan yang selesai ditinjau.' }}
         </p>
       </div>
 
-      <!-- Approval List -->
-      <div v-else class="space-y-2.5">
+      <!-- Clean Cards List -->
+      <div v-else class="space-y-3">
         <div
           v-for="item in displayedApprovalList"
           :key="item.id"
           @click="openApprovalDetail(item)"
-          class="card p-4 cursor-pointer hover:border-teal-200 hover:bg-teal-50/30 active:scale-[0.98] transition-all"
+          class="bg-white border border-slate-200/80 rounded-2xl p-4 transition-all hover:border-slate-300 active:scale-[0.99] cursor-pointer shadow-sm"
         >
-          <div class="flex items-start justify-between">
-            <div class="flex items-center gap-3 min-w-0">
-              <!-- Avatar Initials -->
-              <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-white text-xs font-black"
-                :style="{ background: stringToColor(item.employee_name) }">
-                {{ getInitials(item.employee_name) }}
-              </div>
-              <div class="min-w-0">
-                <p class="text-sm font-bold text-slate-900 truncate">{{ item.employee_name }}</p>
-                <p class="text-[10px] font-medium text-slate-400">{{ item.position }}</p>
-                <p class="text-[10px] text-slate-500 mt-0.5 font-medium">
-                  {{ formatFullDate(item.date) }} · {{ item.start_time?.toString().slice(0,5) }} – {{ item.end_time?.toString().slice(0,5) }}
-                  <span v-if="item.duration" class="text-amber-600 font-bold ml-0.5">({{ item.duration }}j)</span>
-                </p>
-              </div>
+          <!-- Top Row: Name & Status -->
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <div>
+              <h4 class="text-xs font-bold text-slate-900 leading-tight">{{ item.employee_name }}</h4>
+              <p class="text-[10px] font-semibold text-slate-400 mt-0.5">{{ item.position }}</p>
             </div>
-            <span class="badge shrink-0 ml-2" :class="statusBadge(item.status)">{{ statusLabel(item.status) }}</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider"
+              :class="{
+                'bg-amber-50 text-amber-700 border border-amber-200/60': item.status === 'pending',
+                'bg-emerald-50 text-emerald-700 border border-emerald-200/60': item.status === 'approved',
+                'bg-rose-50 text-rose-700 border border-rose-200/60': item.status === 'rejected'
+              }">
+              {{ statusLabel(item.status) }}
+            </span>
           </div>
 
-          <!-- Quick Actions (pending only) -->
-          <div v-if="item.status === 'pending'" class="flex gap-2 mt-3 pt-3 border-t border-slate-100">
+          <!-- Middle Row: Date & Time Info -->
+          <div class="bg-slate-50 rounded-xl p-2.5 flex items-center justify-between text-xs text-slate-600 mb-3 border border-slate-100">
+            <div class="flex items-center gap-1.5">
+              <CalendarDays :size="13" class="text-slate-400" />
+              <span class="font-medium text-[11px]">{{ formatFullDate(item.date) }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <Clock :size="13" class="text-slate-400" />
+              <span class="font-semibold text-[11px] text-slate-800">{{ item.start_time?.toString().slice(0,5) }} - {{ item.end_time?.toString().slice(0,5) }}</span>
+              <span v-if="item.duration" class="text-[10px] font-bold text-slate-400 ml-1">({{ item.duration }}j)</span>
+            </div>
+          </div>
+
+          <!-- Reason snippet if present -->
+          <p v-if="item.reason" class="text-[11px] text-slate-500 line-clamp-1 mb-3 italic px-0.5">
+            "{{ item.reason }}"
+          </p>
+
+          <!-- Bottom Action Buttons (Pending state) -->
+          <div v-if="item.status === 'pending'" class="flex items-center gap-2 pt-1 border-t border-slate-100">
             <button
               @click.stop="handleQuickApprove(item)"
-              class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-emerald-500 text-white text-xs font-bold shadow-sm shadow-emerald-200 hover:bg-emerald-600 active:scale-[0.96] transition-all"
+              class="flex-1 py-2 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 active:scale-[0.98] transition-all flex items-center justify-center gap-1 shadow-sm"
             >
               <Check :size="14" /> Setujui
             </button>
             <button
               @click.stop="handleQuickReject(item)"
-              class="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl bg-rose-500 text-white text-xs font-bold shadow-sm shadow-rose-200 hover:bg-rose-600 active:scale-[0.96] transition-all"
+              class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 text-xs font-bold hover:bg-slate-50 active:scale-[0.98] transition-all flex items-center justify-center gap-1"
             >
               <X :size="14" /> Tolak
             </button>
@@ -354,79 +344,84 @@
     <!-- ============================================ -->
     <Transition name="modal">
       <div v-if="isApprovalModalOpen" class="modal-overlay" @click.self="closeApprovalModal">
-        <div class="w-full max-w-md rounded-[28px] bg-white p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto scrollbar-hide">
+        <div class="w-full max-w-md rounded-[24px] bg-white p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto scrollbar-hide border border-slate-100">
           <button @click="closeApprovalModal" class="absolute right-5 top-5 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
             <X :size="16" />
           </button>
 
-          <div class="mb-5 pr-10">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-teal-600">Detail Pengajuan Lembur</p>
-            <h3 class="text-base font-bold text-slate-900 mt-1">{{ selectedApprovalItem?.employee_name }}</h3>
-            <p class="text-xs text-slate-400 font-medium">{{ selectedApprovalItem?.position }}</p>
-            <span class="badge mt-2" :class="statusBadge(selectedApprovalItem?.status ?? '')">{{ statusLabel(selectedApprovalItem?.status ?? '') }}</span>
+          <!-- Header Modal -->
+          <div class="mb-4 pr-8">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider mb-1.5"
+              :class="{
+                'bg-amber-50 text-amber-700 border border-amber-200/60': selectedApprovalItem?.status === 'pending',
+                'bg-emerald-50 text-emerald-700 border border-emerald-200/60': selectedApprovalItem?.status === 'approved',
+                'bg-rose-50 text-rose-700 border border-rose-200/60': selectedApprovalItem?.status === 'rejected'
+              }">
+              {{ statusLabel(selectedApprovalItem?.status ?? '') }}
+            </span>
+            <h3 class="text-base font-bold text-slate-900 leading-tight">{{ selectedApprovalItem?.employee_name }}</h3>
+            <p class="text-xs text-slate-400 font-medium mt-0.5">{{ selectedApprovalItem?.position }}</p>
           </div>
 
-          <!-- Date & Time Info -->
-          <div class="card p-3.5 mb-3">
-            <p class="info-row-label mb-1.5">Tanggal Lembur</p>
-            <p class="text-sm font-bold text-slate-900">{{ formatDay(selectedApprovalItem?.date ?? '') }}, {{ formatFullDate(selectedApprovalItem?.date ?? '') }}</p>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2.5 mb-3">
-            <div class="card p-3 text-center">
-              <p class="info-row-label">Mulai</p>
-              <p class="info-row-value mt-1">{{ selectedApprovalItem?.start_time?.toString().slice(0,5) }}</p>
-            </div>
-            <div class="card p-3 text-center">
-              <p class="info-row-label">Selesai</p>
-              <p class="info-row-value mt-1">{{ selectedApprovalItem?.end_time?.toString().slice(0,5) }}</p>
-            </div>
-            <div class="rounded-2xl bg-amber-50 border border-amber-100 p-3 text-center">
-              <p class="text-[10px] font-bold uppercase text-amber-400">Durasi</p>
-              <p class="mt-1 text-sm font-bold text-amber-600">{{ selectedApprovalItem?.duration ? selectedApprovalItem.duration + ' Jam' : '-' }}</p>
-            </div>
-          </div>
-
-          <div class="card p-3.5 mb-3">
-            <p class="info-row-label mb-1.5">Alasan / Keterangan Pekerjaan</p>
-            <p class="text-sm leading-relaxed text-slate-700 font-medium whitespace-pre-line">{{ selectedApprovalItem?.reason || '-' }}</p>
-          </div>
-
-          <div v-if="selectedApprovalItem?.attachment" class="card p-3.5 mb-3">
-            <p class="info-row-label mb-2">Dokumen Lampiran</p>
-            <a :href="getAttachmentUrl(selectedApprovalItem.attachment)" target="_blank" rel="noopener noreferrer"
-              class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-teal-200 hover:bg-teal-50 transition-colors">
-              <div class="flex items-center gap-2.5">
-                <div class="p-1.5 bg-teal-100 text-teal-600 rounded-lg"><FileText :size="15" /></div>
-                <span class="text-xs font-semibold text-slate-700">Lihat Dokumen Terlampir</span>
+          <!-- Content Grid Info -->
+          <div class="space-y-3 mb-5">
+            <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-100 flex items-center justify-between">
+              <div>
+                <p class="text-[10px] font-bold uppercase text-slate-400">Tanggal Lembur</p>
+                <p class="text-xs font-bold text-slate-800 mt-0.5">{{ formatFullDate(selectedApprovalItem?.date ?? '') }}</p>
               </div>
-              <ExternalLink :size="13" class="text-slate-400" />
-            </a>
+              <div class="text-right">
+                <p class="text-[10px] font-bold uppercase text-slate-400">Waktu & Durasi</p>
+                <p class="text-xs font-bold text-slate-800 mt-0.5">
+                  {{ selectedApprovalItem?.start_time?.toString().slice(0,5) }} - {{ selectedApprovalItem?.end_time?.toString().slice(0,5) }}
+                  <span v-if="selectedApprovalItem?.duration" class="text-slate-500 font-semibold ml-1">({{ selectedApprovalItem.duration }} Jam)</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Reason Block -->
+            <div class="bg-slate-50 rounded-2xl p-3.5 border border-slate-100">
+              <p class="text-[10px] font-bold uppercase text-slate-400 mb-1">Alasan / Pekerjaan</p>
+              <p class="text-xs text-slate-700 leading-relaxed font-medium whitespace-pre-line">{{ selectedApprovalItem?.reason || '-' }}</p>
+            </div>
+
+            <!-- Attachment -->
+            <div v-if="selectedApprovalItem?.attachment" class="bg-slate-50 rounded-2xl p-3.5 border border-slate-100">
+              <p class="text-[10px] font-bold uppercase text-slate-400 mb-2">Dokumen Lampiran</p>
+              <a :href="getAttachmentUrl(selectedApprovalItem.attachment)" target="_blank" rel="noopener noreferrer"
+                class="flex items-center justify-between p-2.5 rounded-xl bg-white border border-slate-200 hover:border-slate-300 transition-colors">
+                <div class="flex items-center gap-2">
+                  <FileText :size="15" class="text-slate-500" />
+                  <span class="text-xs font-semibold text-slate-700">Lihat Lampiran</span>
+                </div>
+                <ExternalLink :size="13" class="text-slate-400" />
+              </a>
+            </div>
           </div>
 
-          <!-- Approve / Reject Buttons (pending only) -->
-          <div v-if="selectedApprovalItem?.status === 'pending'" class="flex gap-2.5 mb-3">
+          <!-- Approve / Reject Action Buttons (pending only) -->
+          <div v-if="selectedApprovalItem?.status === 'pending'" class="flex gap-2 mb-3">
             <button
               @click="handleModalApprove"
               :disabled="isProcessing"
-              class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-emerald-500 text-white text-sm font-bold shadow-lg shadow-emerald-200 hover:bg-emerald-600 active:scale-[0.96] transition-all disabled:opacity-60"
+              class="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 active:scale-[0.98] transition-all disabled:opacity-60 shadow-sm"
             >
               <span v-if="isProcessing && processAction === 'approve'" class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-              <Check v-else :size="16" />
-              Setujui
+              <Check v-else :size="15" />
+              Setujui Lembur
             </button>
             <button
               @click="handleModalReject"
               :disabled="isProcessing"
-              class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-rose-500 text-white text-sm font-bold shadow-lg shadow-rose-200 hover:bg-rose-600 active:scale-[0.96] transition-all disabled:opacity-60"
+              class="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 active:scale-[0.98] transition-all disabled:opacity-60"
             >
-              <span v-if="isProcessing && processAction === 'reject'" class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-              <X v-else :size="16" />
+              <span v-if="isProcessing && processAction === 'reject'" class="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-transparent"></span>
+              <X v-else :size="15" />
               Tolak
             </button>
           </div>
 
-          <button @click="closeApprovalModal" class="w-full rounded-2xl bg-slate-900 py-4 text-sm font-bold text-white hover:bg-slate-800 active:scale-[0.98] transition-all">
+          <button @click="closeApprovalModal" class="w-full py-3 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200 active:scale-[0.98] transition-all">
             Tutup
           </button>
         </div>
@@ -452,7 +447,7 @@
 import { ref, computed, onMounted } from 'vue'
 import {
   Clock3, BadgePlus, X, FileText, ExternalLink, Trash2, ChevronRight,
-  ShieldCheck, CheckCircle2, XCircle, Check, Filter, AlertCircle
+  ShieldCheck, CheckCircle2, Check, AlertCircle, CalendarDays, Clock
 } from 'lucide-vue-next'
 import BottomNav from '../components/BottomNav.vue'
 import { useAuthStore } from '../stores/authStore'
