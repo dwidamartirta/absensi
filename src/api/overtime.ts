@@ -72,3 +72,43 @@ export const cancelOvertime = (id: number) => {
     `/auth/overtime/${id}`
   )
 }
+
+// =========================================================================
+// Approval API (untuk jabatan tinggi: HSE, IT, ADMIN, DIREKTUR)
+// =========================================================================
+
+export interface ApprovalOvertimeRecord extends OvertimeRecord {
+  employee_name: string
+  position: string
+}
+
+/**
+ * Daftar pengajuan lembur semua karyawan (untuk approver)
+ * GET /api/v1/auth/overtime/approval-list?status=pending&month=04&year=2026
+ */
+export const getApprovalList = (params?: { status?: string; month?: number; year?: number }) => {
+  return api.get<{ success: boolean; message: string; data: ApprovalOvertimeRecord[] }>(
+    '/auth/overtime/approval-list',
+    { params }
+  )
+}
+
+/**
+ * Approve pengajuan lembur
+ * POST /api/v1/auth/overtime/{id}/approve
+ */
+export const approveOvertime = (id: number) => {
+  return api.post<{ success: boolean; message: string }>(
+    `/auth/overtime/${id}/approve`
+  )
+}
+
+/**
+ * Reject pengajuan lembur
+ * POST /api/v1/auth/overtime/{id}/reject
+ */
+export const rejectOvertime = (id: number) => {
+  return api.post<{ success: boolean; message: string }>(
+    `/auth/overtime/${id}/reject`
+  )
+}
