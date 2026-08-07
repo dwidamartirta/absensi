@@ -512,22 +512,6 @@ const getAttachmentUrl = (path: string) => {
   return `${base}/storage/${path}`
 }
 
-const getInitials = (name: string) => {
-  if (!name || name === '-') return '?'
-  return name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase()
-}
-
-const stringToColor = (str: string) => {
-  const colors = [
-    '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#ef4444',
-    '#f97316', '#eab308', '#22c55e', '#14b8a6', '#06b6d4',
-    '#3b82f6', '#2563eb', '#7c3aed', '#a855f7', '#d946ef',
-  ]
-  let hash = 0
-  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash)
-  return colors[Math.abs(hash) % colors.length]
-}
-
 // =========================================================================
 // Toast
 // =========================================================================
@@ -607,8 +591,6 @@ const processAction = ref<'approve' | 'reject'>('approve')
 const approvalFilters = ref({ status: '' as string, month: '' as number | '', year: currentYear as number })
 
 const pendingCount = computed(() => approvalList.value.filter(i => i.status === 'pending').length)
-const approvedCount = computed(() => approvalList.value.filter(i => i.status === 'approved').length)
-const rejectedCount = computed(() => approvalList.value.filter(i => i.status === 'rejected').length)
 
 const displayedApprovalList = computed(() => {
   if (activeTab.value === 'pending') {
