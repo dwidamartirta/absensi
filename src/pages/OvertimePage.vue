@@ -453,11 +453,17 @@ import type { OvertimeRecord, ApprovalOvertimeRecord } from '../api/overtime'
 // =========================================================================
 const authStore = useAuthStore()
 
-const APPROVER_POSITIONS = ['HSE', 'IT', 'ADMIN', 'DIREKTUR']
+// Jabatan yang TIDAK BISA approve (hanya karyawan biasa / lapangan / gudang / driver)
+const EXCLUDED_POSITIONS = ['GUDANG', 'DRIVER', 'SUPIR', 'SOPIR', 'LAPANGAN']
 
 const isApprover = computed(() => {
   const posName = (authStore.user?.employee?.position?.name ?? '').toUpperCase()
-  return APPROVER_POSITIONS.some(p => posName.includes(p))
+  // Jika tidak punya jabatan/posisi kosong, anggap karyawan biasa
+  if (!posName) return false
+  
+  // Jika jabatannya mengandung kata yang di-exclude, maka BUKAN approver
+  const isExcluded = EXCLUDED_POSITIONS.some(p => posName.includes(p))
+  return !isExcluded
 })
 
 // =========================================================================
