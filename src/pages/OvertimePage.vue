@@ -5,25 +5,36 @@
     <header class="page-header">
       <div class="page-header-inner">
         <div class="flex items-center gap-3">
-          <div class="icon-badge h-10 w-10 rounded-xl" :class="isApprover ? 'icon-badge-teal' : 'icon-badge-blue'">
-            <component :is="isApprover ? ShieldCheck : BadgePlus" :size="20" />
+          <div class="icon-badge h-10 w-10 rounded-xl" :class="(isApprover && viewMode === 'approval') ? 'icon-badge-teal' : 'icon-badge-blue'">
+            <component :is="(isApprover && viewMode === 'approval') ? ShieldCheck : BadgePlus" :size="20" />
           </div>
           <div>
             <h1 class="text-[15px] font-black tracking-tight leading-none text-slate-900">
-              {{ isApprover ? 'Persetujuan Lembur' : 'Pengajuan Lembur' }}
+              {{ (isApprover && viewMode === 'approval') ? 'Persetujuan Lembur' : 'Pengajuan Lembur' }}
             </h1>
             <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">
-              {{ isApprover ? 'Kelola Pengajuan Tim' : 'Kelola Waktu Kerja' }}
+              {{ (isApprover && viewMode === 'approval') ? 'Kelola Pengajuan Tim' : 'Kelola Waktu Kerja' }}
             </p>
           </div>
         </div>
+
+        <!-- Toggle Switch Mode khusus Petinggi/Approver -->
+        <button
+          v-if="isApprover"
+          @click="viewMode = viewMode === 'approval' ? 'form' : 'approval'"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all shadow-sm"
+          :class="viewMode === 'approval' ? 'bg-slate-900 border-slate-800 text-white' : 'bg-teal-50 border-teal-200 text-teal-700'"
+        >
+          <component :is="viewMode === 'approval' ? BadgePlus : ShieldCheck" :size="14" />
+          {{ viewMode === 'approval' ? 'Isi Form' : 'Mode Approve' }}
+        </button>
       </div>
     </header>
 
     <!-- ========================================== -->
     <!-- APPROVER VIEW (HSE, IT, ADMIN, DIREKTUR)   -->
     <!-- ========================================== -->
-    <div v-if="isApprover" class="mx-auto max-w-md px-4 pt-5 pb-4">
+    <div v-if="isApprover && viewMode === 'approval'" class="mx-auto max-w-md px-4 pt-5 pb-4">
 
       <!-- Summary Cards -->
       <div class="grid grid-cols-3 gap-2.5 mb-5">
@@ -453,18 +464,33 @@ import type { OvertimeRecord, ApprovalOvertimeRecord } from '../api/overtime'
 // =========================================================================
 const authStore = useAuthStore()
 
-// Jabatan yang TIDAK BISA approve (hanya karyawan biasa / lapangan / gudang / driver)
-const EXCLUDED_POSITIONS = ['GUDANG', 'DRIVER', 'SUPIR', 'SOPIR', 'LAPANGAN']
+// Jabatan petinggi/approver (case-insensitive substring check)
+const APPROVER_POSITIONS = [
+  'HSE', 'IT', 'ADMIN', 'DIREKTUR', 'DIRECTOR', 'MANAGER', 'MANAGEMENT',
+  'SUPERVISOR', 'SPV', 'HEAD', 'LEAD', 'CHIEF', 'KOORDINATOR', 'COORDINATOR'
+]
 
 const isApprover = computed(() => {
-  const posName = (authStore.user?.employee?.position?.name ?? '').toUpperCase()
-  // Jika tidak punya jabatan/posisi kosong, anggap karyawan biasa
+  const user = authStore.user
+  if (!user) return false
+
+  // 1. Cek dari Spatie roles / permissions
+  const roles = user.roles_list || []
+  const permissions = user.permissions_list || []
+  const hasRoleOrPermission = roles.some(r => ['admin', 'super-admin', 'manager', 'supervisor', 'hse', 'it', 'direktur'].includes(r.toLowerCase())) ||
+                                permissions.includes('overtime.approve')
+  if (hasRoleOrPermission) return true
+
+  // 2. Cek dari nama posisi/jabatan karyawan
+  const posName = (user.employee?.position?.name ?? '').toUpperCase()
   if (!posName) return false
-  
-  // Jika jabatannya mengandung kata yang di-exclude, maka BUKAN approver
-  const isExcluded = EXCLUDED_POSITIONS.some(p => posName.includes(p))
-  return !isExcluded
+
+  return APPROVER_POSITIONS.some(p => posName.includes(p))
 })
+
+// View Mode toggle untuk Approver: 'approval' (default) atau 'form' (jika ingin isi form lembur sendiri)
+const viewMode = ref<'approval' | 'form'>('approval')
+
 
 // =========================================================================
 // Shared Helpers
