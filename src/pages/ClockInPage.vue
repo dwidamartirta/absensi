@@ -344,6 +344,7 @@ const handleClockIn = async () => {
     return
   }
 
+  // Set isSubmitting secara langsung untuk mencegah double tap/click
   isSubmitting.value = true
 
   try {
@@ -352,6 +353,7 @@ const handleClockIn = async () => {
     const statusVal = isLate ? 'Terlambat' : 'Hadir'
 
     await storeAttendance({
+      action: 'clock_in',
       status: statusVal,
       lat: userLat,
       long: userLng,

@@ -33,6 +33,7 @@ export interface AttendanceIndexResponse {
 
 export interface StoreAttendancePayload {
   status: string             // 'Hadir', 'Terlambat', 'sakit', 'izin'
+  action?: 'clock_in' | 'clock_out'
   lat?: number
   long?: number
   attendance_detail?: string
@@ -64,6 +65,7 @@ export const storeAttendance = (payload: StoreAttendancePayload) => {
   // Gunakan FormData agar bisa kirim file attachment
   const formData = new FormData()
   formData.append('status', payload.status)
+  if (payload.action) formData.append('action', payload.action)
   if (payload.lat !== undefined) formData.append('lat', String(payload.lat))
   if (payload.long !== undefined) formData.append('long', String(payload.long))
   if (payload.attendance_detail) formData.append('attendance_detail', payload.attendance_detail)

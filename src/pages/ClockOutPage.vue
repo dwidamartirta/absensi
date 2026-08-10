@@ -463,6 +463,7 @@ const handleClockOut = async () => {
 
   try {
     await storeAttendance({
+      action: 'clock_out',
       status: 'Hadir',
       lat: userLat,
       long: userLng,
