@@ -468,7 +468,7 @@ const handleClockOut = async () => {
       lat: userLat,
       long: userLng,
       attendance_detail: form.value.keterangan || undefined,
-      daily_trip: form.value.trip || undefined,
+      daily_trip: form.value.trip || '0',
     })
 
     router.push({
