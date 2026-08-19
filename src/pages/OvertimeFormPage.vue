@@ -42,11 +42,40 @@
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="label">Jam Mulai <span class="text-rose-500">*</span></label>
-              <input id="ot-start" v-model="form.start_time" type="time" required class="input-base" />
+              <div class="relative">
+                <select id="ot-start" v-model="form.start_time" required class="input-base appearance-none pr-8 font-semibold text-slate-800">
+                  <option value="" disabled>-- Pilih --</option>
+                  <option v-for="t in timeOptions" :key="'start-'+t" :value="t">{{ t }} WIB</option>
+                </select>
+                <Clock :size="15" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
             </div>
             <div>
               <label class="label">Jam Selesai <span class="text-rose-500">*</span></label>
-              <input id="ot-end" v-model="form.end_time" type="time" required class="input-base" />
+              <div class="relative">
+                <select id="ot-end" v-model="form.end_time" required class="input-base appearance-none pr-8 font-semibold text-slate-800">
+                  <option value="" disabled>-- Pilih --</option>
+                  <option v-for="t in timeOptions" :key="'end-'+t" :value="t">{{ t }} WIB</option>
+                </select>
+                <Clock :size="15" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Presets -->
+          <div class="mt-2">
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Pilihan Cepat Jam Mulai:</p>
+            <div class="flex flex-wrap gap-1.5">
+              <button
+                type="button"
+                v-for="preset in ['17:00', '17:30', '18:00', '18:30']"
+                :key="preset"
+                @click="form.start_time = preset"
+                class="px-2.5 py-1 rounded-xl text-xs font-bold transition-all border"
+                :class="form.start_time === preset ? 'bg-amber-500 text-white border-amber-500 shadow-sm' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'"
+              >
+                {{ preset }}
+              </button>
             </div>
           </div>
 
@@ -144,6 +173,16 @@ const form = ref({ date: today, start_time: '', end_time: '', reason: '' })
 const fileName = ref('')
 const attachmentFile = ref<File | null>(null)
 const isSubmitting = ref(false)
+
+const timeOptions = computed(() => {
+  const options: string[] = []
+  for (let h = 0; h < 24; h++) {
+    const hh = String(h).padStart(2, '0')
+    options.push(`${hh}:00`)
+    options.push(`${hh}:30`)
+  }
+  return options
+})
 const errorMessage = ref('')
 
 const calculatedDuration = computed<string | null>(() => {
