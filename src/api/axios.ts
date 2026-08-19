@@ -179,8 +179,8 @@ api.interceptors.response.use(
 
         if (loadingStore && !originalRequest.hideLoading) {
           loadingStore.setMessage(
-            'Antrean Server Sedang Padat',
-            `Sistem sedang mengatur antrean (Percobaan ${originalRequest._retryCount}/${maxRetries}). Mengulang dalam ${(delayMs / 1000).toFixed(1)} detik...`
+            'Antrean Server',
+            `Server sibuk. Mengulang otomatis dalam ${(delayMs / 1000).toFixed(0)} dtk...`
           )
         }
 

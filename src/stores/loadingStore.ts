@@ -7,11 +7,11 @@ export const useLoadingStore = defineStore('loading', () => {
   const queuedRequestsCount = ref(0)
   const isManualLoading = ref(false)
   
-  const titleMessage = ref('Memproses Permintaan...')
-  const subtextMessage = ref('Sistem sedang mengamankan data Anda. Mohon tunggu sebentar.')
+  const titleMessage = ref('Memproses Data')
+  const subtextMessage = ref('Mohon tunggu sebentar...')
   const progressPercent = ref<number | null>(null)
 
-  // Debounce hide timer to prevent UI flicker on ultra-fast requests (< 200ms)
+  // Debounce timer to avoid UI flicker on super fast API calls
   let hideDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
   // --- GETTERS ---
@@ -21,14 +21,14 @@ export const useLoadingStore = defineStore('loading', () => {
 
   const currentTitle = computed(() => {
     if (queuedRequestsCount.value > 0) {
-      return 'Antrean Server Padat'
+      return 'Antrean Server'
     }
     return titleMessage.value
   })
 
   const currentSubtext = computed(() => {
     if (queuedRequestsCount.value > 0) {
-      return `Ada ${queuedRequestsCount.value} proses dalam antrean. Menunggu diproses server...`
+      return `Sedang memproses ${queuedRequestsCount.value} antrean. Mohon tidak menutup halaman.`
     }
     return subtextMessage.value
   })
@@ -50,13 +50,12 @@ export const useLoadingStore = defineStore('loading', () => {
       activeRequestsCount.value--
     }
 
-    // Reset default text when all requests finish
     if (activeRequestsCount.value === 0 && queuedRequestsCount.value === 0) {
       hideDebounceTimer = setTimeout(() => {
-        titleMessage.value = 'Memproses Permintaan...'
-        subtextMessage.value = 'Sistem sedang mengamankan data Anda. Mohon tunggu sebentar.'
+        titleMessage.value = 'Memproses Data'
+        subtextMessage.value = 'Mohon tunggu sebentar...'
         progressPercent.value = null
-      }, 300)
+      }, 200)
     }
   }
 
@@ -73,7 +72,7 @@ export const useLoadingStore = defineStore('loading', () => {
     progressPercent.value = percent
   }
 
-  const showManual = (msg = 'Memproses...', subtext = 'Mohon jangan menutup aplikasi') => {
+  const showManual = (msg = 'Memproses Data', subtext = 'Mohon tunggu sebentar...') => {
     isManualLoading.value = true
     titleMessage.value = msg
     subtextMessage.value = subtext
