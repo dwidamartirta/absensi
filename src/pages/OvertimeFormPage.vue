@@ -43,20 +43,14 @@
             <div>
               <label class="label">Jam Mulai <span class="text-rose-500">*</span></label>
               <div class="relative">
-                <select id="ot-start" v-model="form.start_time" required class="input-base appearance-none pr-8 font-semibold text-slate-800">
-                  <option value="" disabled>-- Pilih --</option>
-                  <option v-for="t in timeOptions" :key="'start-'+t" :value="t">{{ t }} WIB</option>
-                </select>
+                <input id="ot-start" v-model="form.start_time" @change="enforceInterval('start_time')" type="time" step="1800" required class="input-base pr-8 font-semibold text-slate-800 w-full" />
                 <Clock :size="15" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               </div>
             </div>
             <div>
               <label class="label">Jam Selesai <span class="text-rose-500">*</span></label>
               <div class="relative">
-                <select id="ot-end" v-model="form.end_time" required class="input-base appearance-none pr-8 font-semibold text-slate-800">
-                  <option value="" disabled>-- Pilih --</option>
-                  <option v-for="t in timeOptions" :key="'end-'+t" :value="t">{{ t }} WIB</option>
-                </select>
+                <input id="ot-end" v-model="form.end_time" @change="enforceInterval('end_time')" type="time" step="1800" required class="input-base pr-8 font-semibold text-slate-800 w-full" />
                 <Clock :size="15" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
               </div>
             </div>
@@ -174,16 +168,17 @@ const fileName = ref('')
 const attachmentFile = ref<File | null>(null)
 const isSubmitting = ref(false)
 
-const timeOptions = computed(() => {
-  const options: string[] = []
-  for (let h = 0; h < 24; h++) {
-    const hh = String(h).padStart(2, '0')
-    options.push(`${hh}:00`)
-    options.push(`${hh}:30`)
-  }
-  return options
-})
 const errorMessage = ref('')
+
+const enforceInterval = (field: 'start_time' | 'end_time') => {
+  if (!form.value[field]) return
+  const [h, m] = form.value[field].split(':').map(Number)
+  const totalMinutes = h * 60 + m
+  const roundedTotalMinutes = Math.round(totalMinutes / 30) * 30
+  const hours = Math.floor(roundedTotalMinutes / 60) % 24
+  const minutes = roundedTotalMinutes % 60
+  form.value[field] = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+}
 
 const calculatedDuration = computed<string | null>(() => {
   if (!form.value.start_time || !form.value.end_time) return null
