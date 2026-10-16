@@ -181,7 +181,7 @@
               </div>
 
               <div>
-                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Foto Limbah (Ambil Gambar)</label>
+                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Foto Limbah (Ambil Gambar, maks. 5MB)</label>
                 <input
                   type="file"
                   accept="image/*"
@@ -332,6 +332,12 @@ const removeItem = (idx: number) => {
 const handlePhotoUpload = (idx: number, event: any) => {
   const file = event.target.files[0]
   if (file) {
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Ukuran foto tidak boleh melebihi 5MB.', 'error')
+      event.target.value = ''
+      form.value.items[idx].foto = null
+      return
+    }
     form.value.items[idx].foto = file
   }
 }

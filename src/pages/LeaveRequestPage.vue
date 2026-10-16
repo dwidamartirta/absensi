@@ -135,7 +135,7 @@
                 <p class="mt-1.5 text-[11px] font-bold" :class="fileName ? 'text-emerald-700' : 'text-slate-600'">
                   {{ fileName || 'Klik di sini untuk upload file' }}
                 </p>
-                <p class="text-[9px] text-slate-400 mt-0.5">Format: JPG, PNG, atau PDF (Max 2MB)</p>
+                <p class="text-[9px] text-slate-400 mt-0.5">Format: JPG, PNG, atau PDF (Max 5MB)</p>
               </div>
             </div>
           </div>
@@ -303,8 +303,8 @@ const handleFile = (e: Event) => {
   const target = e.target as HTMLInputElement
   const file = target.files?.[0]
   if (!file) return
-  if (file.size > 2 * 1024 * 1024) {
-    errorMsg.value = 'Ukuran file maksimal 2MB!'
+  if (file.size > 5 * 1024 * 1024) {
+    errorMsg.value = 'Ukuran file maksimal 5MB!'
     target.value = ''
     return
   }

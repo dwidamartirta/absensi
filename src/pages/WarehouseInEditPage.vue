@@ -421,6 +421,12 @@ const hideItemSuggestionsDelayed = (idx: number) => {
 const handlePhotoUpload = (idx: number, event: any) => {
   const file = event.target.files[0]
   if (file) {
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('Ukuran foto tidak boleh melebihi 5MB.', 'error')
+      event.target.value = ''
+      form.value.items[idx].foto = null
+      return
+    }
     form.value.items[idx].foto = file
   }
 }
