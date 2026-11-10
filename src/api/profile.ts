@@ -1,5 +1,25 @@
 import api from './axios'
 
+export interface PersonalData {
+  name: string | null
+  nik_ktp: string | null
+  npwp: string | null
+  tempat_lahir: string | null
+  tanggal_lahir: string | null
+  jenis_kelamin: string | null
+  status_pernikahan: string | null
+  jumlah_anak?: number | string | null
+  agama: string | null
+  phone_number: string | null
+  address: string | null
+  bank_name: string | null
+  bank_account_number: string | null
+  bank_account_name: string | null
+  emergency_contact_name: string | null
+  emergency_contact_relationship: string | null
+  emergency_contact_phone: string | null
+}
+
 export interface ProfileData {
   user_id: number
   name: string
@@ -12,6 +32,10 @@ export interface ProfileData {
   join_date: string | null
   is_active: boolean
   position: string | null
+  photo_url: string | null
+  personal: PersonalData
+  completeness: number
+  last_updated_at: string | null
   detail: {
     place_of_birth: string | null
     date_of_birth: string | null
@@ -20,6 +44,7 @@ export interface ProfileData {
     identity_number: string | null
     bank_name: string | null
     bank_account_number: string | null
+    bank_account_name: string | null
     emergency_contact_name: string | null
     emergency_contact_phone: string | null
     emergency_contact_relationship: string | null
@@ -43,11 +68,23 @@ export const getProfile = () => {
 }
 
 /**
- * Update profile data (name, phone, address, details)
+ * Update data pribadi (tanpa data kepegawaian)
  * PUT /api/v1/auth/profile
  */
-export const updateProfile = (payload: any) => {
-  return api.put<{ success: boolean; message: string; data: any }>('/auth/profile', payload)
+export const updateProfile = (payload: Partial<PersonalData>) => {
+  return api.put<{ success: boolean; message: string; data: { changed: number; fields?: string[] } }>('/auth/profile', payload)
+}
+
+/**
+ * Upload foto profil
+ * POST /api/v1/auth/profile/photo
+ */
+export const updateProfilePhoto = (file: File) => {
+  const fd = new FormData()
+  fd.append('photo', file)
+  return api.post<{ success: boolean; message: string; data: { photo_url: string } }>('/auth/profile/photo', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
 }
 
 /**

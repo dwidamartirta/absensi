@@ -31,7 +31,9 @@
         <div v-else class="relative z-10 flex flex-col items-center text-center">
           <!-- Avatar -->
           <div class="relative mb-4">
-            <div class="flex h-[80px] w-[80px] items-center justify-center rounded-full bg-blue-600 text-white text-2xl font-black shadow-xl shadow-blue-200 select-none">
+            <img v-if="profile?.photo_url" :src="profile.photo_url" alt="Foto profil"
+              class="h-[80px] w-[80px] rounded-full object-cover shadow-xl shadow-blue-200" />
+            <div v-else class="flex h-[80px] w-[80px] items-center justify-center rounded-full bg-blue-600 text-white text-2xl font-black shadow-xl shadow-blue-200 select-none">
               {{ inisial }}
             </div>
             <div class="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-teal-500 border-2 border-white shadow-sm">
@@ -43,7 +45,7 @@
           <p class="text-[11px] font-bold text-blue-600 uppercase tracking-widest mt-0.5">{{ jabatan || 'Karyawan' }}</p>
           <div class="flex items-center gap-1.5 mt-2">
             <div class="badge badge-success">Aktif</div>
-            <div class="badge badge-neutral">{{ profile?.nik_karyawan || '-' }}</div>
+            <div class="badge badge-neutral">{{ profile?.employee_number || '-' }}</div>
           </div>
 
           <!-- Quick Stats -->
@@ -65,11 +67,29 @@
       </section>
 
 
+      <!-- Pengingat kelengkapan data -->
+      <RouterLink v-if="!isLoading && profile && (profile.completeness ?? 100) < 100" to="/edit-profil"
+        class="mb-4 flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5 active:scale-[0.98] transition-all">
+        <div class="icon-badge icon-badge-amber h-10 w-10 rounded-xl shrink-0">
+          <UserPen :size="18" />
+        </div>
+        <div class="min-w-0 flex-1">
+          <p class="text-[13px] font-bold text-amber-900">Data diri baru {{ profile.completeness }}% lengkap</p>
+          <div class="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-amber-100">
+            <div class="h-full rounded-full bg-amber-500" :style="{ width: profile.completeness + '%' }"></div>
+          </div>
+        </div>
+        <ChevronRight :size="16" class="text-amber-400" />
+      </RouterLink>
+
       <!-- Info Card -->
       <section class="card p-5 mb-4">
-        <div class="flex items-center gap-2 mb-4">
-          <User :size="16" class="text-blue-600" />
-          <p class="section-label">Informasi Pribadi</p>
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <User :size="16" class="text-blue-600" />
+            <p class="section-label">Informasi Pribadi</p>
+          </div>
+          <RouterLink to="/edit-profil" class="text-[11px] font-bold text-blue-600">Ubah</RouterLink>
         </div>
         <div v-if="isLoading" class="space-y-3">
           <div v-for="i in 4" :key="i" class="skeleton h-10 w-full rounded-xl"></div>
@@ -92,9 +112,48 @@
           <div class="flex items-center justify-between py-2 border-b border-slate-50">
             <div>
               <p class="info-row-label">Jenis Kelamin</p>
-              <p class="info-row-value">{{ profile?.detail?.gender || '-' }}</p>
+              <p class="info-row-value">{{ profile?.personal?.jenis_kelamin || profile?.detail?.gender || '-' }}</p>
             </div>
             <UserRound :size="16" class="text-slate-300" />
+          </div>
+          <div class="flex items-center justify-between py-2 border-b border-slate-50">
+            <div>
+              <p class="info-row-label">Status Pernikahan</p>
+              <p class="info-row-value">
+                {{ profile?.personal?.status_pernikahan || profile?.detail?.marital_status || '-' }}
+                <span v-if="(profile?.personal?.status_pernikahan === 'Kawin' || profile?.detail?.marital_status === 'Kawin') && profile?.personal?.jumlah_anak !== undefined && profile?.personal?.jumlah_anak !== null" class="text-blue-600 font-semibold">
+                  · {{ profile.personal.jumlah_anak }} anak
+                </span>
+              </p>
+            </div>
+            <Users :size="16" class="text-slate-300" />
+          </div>
+          <div class="flex items-center justify-between py-2 border-b border-slate-50">
+            <div>
+              <p class="info-row-label">Agama</p>
+              <p class="info-row-value">{{ profile?.personal?.agama || '-' }}</p>
+            </div>
+            <User :size="16" class="text-slate-300" />
+          </div>
+          <div class="flex items-center justify-between py-2 border-b border-slate-50">
+            <div>
+              <p class="info-row-label">Rekening</p>
+              <p class="info-row-value">
+                {{ profile?.personal?.bank_account_number ? `${profile.personal.bank_name || ''} · ${profile.personal.bank_account_number}` : '-' }}
+              </p>
+            </div>
+            <CreditCard :size="16" class="text-slate-300" />
+          </div>
+          <div class="flex items-center justify-between py-2 border-b border-slate-50">
+            <div>
+              <p class="info-row-label">Kontak Darurat</p>
+              <p class="info-row-value">
+                {{ profile?.personal?.emergency_contact_name
+                  ? `${profile.personal.emergency_contact_name}${profile.personal.emergency_contact_relationship ? ' (' + profile.personal.emergency_contact_relationship + ')' : ''}`
+                  : '-' }}
+              </p>
+            </div>
+            <ShieldAlert :size="16" class="text-slate-300" />
           </div>
           <div class="flex items-center justify-between py-2">
             <div>
@@ -148,7 +207,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { UserRound, CheckCircle2, Mail, Phone, MapPin, ChevronRight, LogOut, User, Lock, FileText, Users, Package } from 'lucide-vue-next'
+import { UserRound, CheckCircle2, Mail, Phone, MapPin, ChevronRight, LogOut, User, Lock, FileText, Users, Package, UserPen, CreditCard, ShieldAlert } from 'lucide-vue-next'
 import BottomNav from '../components/BottomNav.vue'
 import { useAuthStore } from '../stores/authStore'
 import { getProfile } from '../api/profile'
@@ -166,11 +225,14 @@ const inisial = computed(() => {
   const n = profile.value?.name || ''
   return n.split(' ').map((w: string) => w[0]).join('').toUpperCase().slice(0, 2)
 })
-const jabatan = computed(() => profile.value?.position?.name || '')
+const jabatan = computed(() => {
+  const p = profile.value?.position
+  return typeof p === 'string' ? p : (p?.name || '')
+})
 
 const menuItems = computed(() => {
   const items = [
-    { label: 'Edit Profil', path: '/edit-profil', icon: User, iconClass: 'icon-badge-blue' },
+    { label: 'Update Data Diri', path: '/edit-profil', icon: User, iconClass: 'icon-badge-blue' },
     { label: 'Keamanan & Kata Sandi', path: '/ganti-password', icon: Lock, iconClass: 'icon-badge-amber' },
     { label: 'Pengajuan Ketidakhadiran', path: '/ketidakhadiran', icon: FileText, iconClass: 'icon-badge-teal' },
     { label: 'Karyawan Tidak Masuk', path: '/karyawan-tidak-masuk', icon: Users, iconClass: 'icon-badge-rose' },

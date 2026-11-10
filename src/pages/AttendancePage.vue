@@ -549,7 +549,7 @@ import { computed, ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import {
   FileText, X, MapPin, ExternalLink, Fingerprint,
   CalendarCheck, Clock, LogOut, ChevronRight, CheckCircle2, UserRound, Package,
-  Users, History, Stethoscope, Palmtree, Bell, BellRing, Truck
+  Users, History, Stethoscope, Palmtree, Bell, BellRing, Truck, UserCheck, UserPen
 } from 'lucide-vue-next'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -616,6 +616,8 @@ const notifIcon = (type: string) => {
     case 'attendance_in': return Fingerprint
     case 'attendance_out': return LogOut
     case 'transport_task': return Truck
+    case 'profile_updated': return UserCheck
+    case 'profile_incomplete': return UserPen
     default: return Bell
   }
 }

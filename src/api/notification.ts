@@ -4,7 +4,7 @@ export interface AppNotification {
   id: string
   title: string
   body: string
-  type: 'attendance_in' | 'attendance_out' | 'transport_task' | 'general'
+  type: 'attendance_in' | 'attendance_out' | 'transport_task' | 'profile_updated' | 'profile_incomplete' | 'general'
   priority: 'high' | 'medium' | 'low'
   action_url: string
   icon: string
