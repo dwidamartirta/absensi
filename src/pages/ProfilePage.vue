@@ -111,6 +111,17 @@
           </div>
           <div class="flex items-center justify-between py-2 border-b border-slate-50">
             <div>
+              <p class="info-row-label">Dokumen e-KTP</p>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="info-row-value">{{ profile?.personal?.nik_ktp ? 'NIK: ' + profile.personal.nik_ktp : 'Belum diisi' }}</span>
+                <span v-if="profile?.foto_ktp_url || profile?.ktp_document" class="badge badge-success text-[9px] py-0.5">Ada Foto</span>
+                <span v-else class="rounded bg-rose-100 text-rose-700 px-1.5 py-0.5 text-[9px] font-bold">Belum Ada</span>
+              </div>
+            </div>
+            <Scan :size="16" class="text-slate-300" />
+          </div>
+          <div class="flex items-center justify-between py-2 border-b border-slate-50">
+            <div>
               <p class="info-row-label">Jenis Kelamin</p>
               <p class="info-row-value">{{ profile?.personal?.jenis_kelamin || profile?.detail?.gender || '-' }}</p>
             </div>
@@ -207,7 +218,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { UserRound, CheckCircle2, Mail, Phone, MapPin, ChevronRight, LogOut, User, Lock, FileText, Users, Package, UserPen, CreditCard, ShieldAlert } from 'lucide-vue-next'
+import { UserRound, CheckCircle2, Mail, Phone, MapPin, ChevronRight, LogOut, User, Lock, FileText, Users, Package, UserPen, CreditCard, ShieldAlert, Scan } from 'lucide-vue-next'
 import BottomNav from '../components/BottomNav.vue'
 import { useAuthStore } from '../stores/authStore'
 import { getProfile } from '../api/profile'

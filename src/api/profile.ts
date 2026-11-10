@@ -33,6 +33,15 @@ export interface ProfileData {
   is_active: boolean
   position: string | null
   photo_url: string | null
+  foto_ktp_url?: string | null
+  ktp_document?: {
+    id: number
+    file_url: string
+    verification_status: 'unverified' | 'verified' | 'rejected'
+    verified_at: string | null
+    ocr_status: string | null
+    created_at: string | null
+  } | null
   personal: PersonalData
   completeness: number
   last_updated_at: string | null
@@ -93,4 +102,41 @@ export const updateProfilePhoto = (file: File) => {
  */
 export const changePassword = (payload: any) => {
   return api.post<{ success: boolean; message: string }>('/auth/change-password', payload)
+}
+
+/**
+ * Upload berkas e-KTP dan simpan metadata audit trail
+ * POST /api/v1/auth/profile/ktp
+ */
+export const uploadKtp = (file: File, ocrData?: any, ocrRawText?: string, ocrConfidence?: number) => {
+  const fd = new FormData()
+  fd.append('ktp_image', file)
+  if (ocrData) {
+    fd.append('ocr_data', typeof ocrData === 'string' ? ocrData : JSON.stringify(ocrData))
+  }
+  if (ocrRawText) {
+    fd.append('ocr_raw_text', ocrRawText)
+  }
+  if (ocrConfidence !== undefined) {
+    fd.append('ocr_confidence', String(ocrConfidence))
+  }
+  return api.post<{
+    success: boolean
+    message: string
+    data: {
+      document_id: number
+      file_url: string
+      extracted_data: any
+    }
+  }>('/auth/profile/ktp', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+}
+
+/**
+ * Parse teks e-KTP via backend
+ * POST /api/v1/auth/profile/ktp/parse
+ */
+export const parseKtpText = (rawText: string) => {
+  return api.post<{ success: boolean; message: string; data: any }>('/auth/profile/ktp/parse', { raw_text: rawText })
 }
