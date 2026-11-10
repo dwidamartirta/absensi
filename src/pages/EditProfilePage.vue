@@ -99,43 +99,50 @@
 
               <!-- ===== DATA PRIBADI ===== -->
               <template v-if="sec.key === 'pribadi'">
-                <!-- Banner Scan e-KTP Otomatis -->
-                <div class="rounded-2xl border-2 border-dashed border-blue-200 bg-gradient-to-r from-blue-50/80 to-indigo-50/80 p-4 transition-all hover:border-blue-300">
-                  <div class="flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-3">
-                      <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-md shadow-blue-200">
-                        <Scan :size="22" />
-                      </div>
-                      <div>
-                        <div class="flex items-center gap-1.5">
-                          <p class="text-xs font-black text-slate-900">Scan e-KTP Otomatis</p>
-                          <span class="rounded bg-blue-100 px-1.5 py-0.5 text-[9px] font-black uppercase text-blue-700">Auto-Fill</span>
-                        </div>
-                        <p class="text-[11px] font-medium text-slate-500 mt-0.5">
-                          Gunakan kamera atau upload foto e-KTP agar data terisi otomatis.
-                        </p>
-                      </div>
+                <!-- Upload Foto e-KTP (Sederhana & Mudah) -->
+                <div class="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-xs">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <CreditCard :size="16" class="text-blue-600" />
+                      <span class="text-xs font-black uppercase tracking-wider text-slate-800">Foto e-KTP</span>
                     </div>
-                    <button
-                      type="button"
-                      @click="isKtpModalOpen = true"
-                      class="btn-primary !w-auto shrink-0 px-3.5 py-2 text-xs shadow-none"
-                    >
-                      <Camera :size="14" /> Scan KTP
-                    </button>
+                    <span v-if="ktpPhotoUrl" class="rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-black">
+                      ✓ Terunggah
+                    </span>
+                    <span v-else class="rounded-full bg-slate-100 text-slate-400 px-2.5 py-0.5 text-[10px] font-bold">
+                      Belum Ada
+                    </span>
                   </div>
 
-                  <!-- Status / Thumbnail KTP jika sudah ada -->
-                  <div v-if="ktpPhotoUrl" class="mt-3 flex items-center justify-between border-t border-blue-100/80 pt-2.5 text-[11px]">
-                    <div class="flex items-center gap-2">
-                      <img :src="ktpPhotoUrl" alt="Foto KTP" class="h-6 w-9 rounded object-cover border border-slate-200 shadow-xs" />
-                      <span class="font-bold text-slate-700">Berkas e-KTP terunggah</span>
-                      <span v-if="ktpDocStatus === 'verified'" class="badge badge-success text-[9px] py-0.5">Terverifikasi</span>
-                      <span v-else class="rounded-full bg-slate-200 px-2 py-0.5 text-[9px] font-bold text-slate-600">Tersimpan</span>
+                  <!-- Preview KTP -->
+                  <div v-if="ktpPhotoUrl" class="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-900 aspect-[85.6/53.98]">
+                    <img :src="ktpPhotoUrl" alt="Foto KTP" class="h-full w-full object-cover" />
+                    <div v-if="isUploadingKtp" class="absolute inset-0 bg-slate-900/70 flex flex-col items-center justify-center text-white backdrop-blur-xs">
+                      <div class="spinner"></div>
+                      <p class="text-[11px] font-bold mt-2">Mengunggah e-KTP...</p>
                     </div>
-                    <button type="button" @click="isKtpModalOpen = true" class="font-bold text-blue-600 hover:underline">
-                      Foto Ulang
-                    </button>
+                  </div>
+                  <div v-else class="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/60 py-6 text-center">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 mb-2">
+                      <Camera :size="20" />
+                    </div>
+                    <p class="text-xs font-bold text-slate-800">Unggah Foto e-KTP</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">Pilih foto dari kamera HP atau galeri berkas</p>
+                  </div>
+
+                  <!-- Tombol Aksi Upload Cepat -->
+                  <div class="grid grid-cols-2 gap-2 pt-1">
+                    <label class="btn-primary !py-2.5 text-xs cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-none" :class="{ 'opacity-60 pointer-events-none': isUploadingKtp }">
+                      <input type="file" accept="image/*" capture="environment" class="hidden" @change="onKtpFileSelected" />
+                      <Camera :size="15" />
+                      <span>{{ ktpPhotoUrl ? 'Foto Ulang' : 'Foto Kamera' }}</span>
+                    </label>
+
+                    <label class="btn-secondary !py-2.5 text-xs cursor-pointer text-center flex items-center justify-center gap-1.5" :class="{ 'opacity-60 pointer-events-none': isUploadingKtp }">
+                      <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden" @change="onKtpFileSelected" />
+                      <Upload :size="15" />
+                      <span>Pilih Galeri</span>
+                    </label>
                   </div>
                 </div>
 
@@ -314,13 +321,6 @@
         </div>
       </div>
     </Transition>
-
-    <!-- Modal Scanner e-KTP (Live Kamera / Upload / OCR) -->
-    <KtpScanModal
-      v-if="isKtpModalOpen"
-      @close="isKtpModalOpen = false"
-      @applied="onKtpApplied"
-    />
   </div>
 </template>
 
@@ -328,13 +328,11 @@
 import { ref, computed, onMounted, onBeforeUnmount, h, defineComponent, type PropType } from 'vue'
 import { useRouter, onBeforeRouteLeave } from 'vue-router'
 import { useToast } from '../composables/useToast'
-import { getProfile, updateProfile, updateProfilePhoto, type PersonalData } from '../api/profile'
 import {
   ArrowLeft, User, Phone, CreditCard, ShieldAlert, Save, Camera, Info, History,
-  ChevronDown, ChevronRight, CheckCircle2, Copy, RotateCcw, Check, AlertCircle, Scan,
+  ChevronDown, ChevronRight, CheckCircle2, Copy, RotateCcw, Check, AlertCircle, Upload,
 } from 'lucide-vue-next'
-import KtpScanModal from '../components/KtpScanModal.vue'
-import type { ParsedKtpData } from '../utils/ktpScanner'
+import { getProfile, updateProfile, updateProfilePhoto, uploadKtp, type PersonalData } from '../api/profile'
 
 type Key = keyof PersonalData
 
@@ -416,7 +414,7 @@ const isLoading = ref(true)
 const isSaving = ref(false)
 const isUploading = ref(false)
 const isConfirmOpen = ref(false)
-const isKtpModalOpen = ref(false)
+const isUploadingKtp = ref(false)
 const ktpPhotoUrl = ref<string | null>(null)
 const ktpDocStatus = ref<string | null>(null)
 const photoUrl = ref<string | null>(null)
@@ -542,21 +540,31 @@ const resetForm = () => {
   errors.value = {}
 }
 
-const onKtpApplied = (payload: { parsed: ParsedKtpData; fileUrl: string; documentId: number }) => {
-  isKtpModalOpen.value = false
-  ktpPhotoUrl.value = payload.fileUrl
+const onKtpFileSelected = async (e: Event) => {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  input.value = ''
+  if (!file) return
 
-  const p = payload.parsed
-  if (p.nik) form.value.nik_ktp = p.nik
-  if (p.nama) form.value.name = p.nama
-  if (p.tempat_lahir) form.value.tempat_lahir = p.tempat_lahir
-  if (p.tanggal_lahir) form.value.tanggal_lahir = p.tanggal_lahir
-  if (p.jenis_kelamin) form.value.jenis_kelamin = p.jenis_kelamin
-  if (p.status_perkawinan) form.value.status_pernikahan = p.status_perkawinan
-  if (p.agama) form.value.agama = p.agama
-  if (p.alamat) form.value.address = p.alamat
+  if (file.size > 5 * 1024 * 1024) {
+    showToast('Ukuran foto KTP maksimal 5 MB.', 'error')
+    return
+  }
 
-  showToast('Form berhasil diisi otomatis dari e-KTP!', 'success')
+  const prevUrl = ktpPhotoUrl.value
+  ktpPhotoUrl.value = URL.createObjectURL(file)
+  isUploadingKtp.value = true
+
+  try {
+    const res = await uploadKtp(file)
+    ktpPhotoUrl.value = res.data.data.file_url
+    showToast('Foto e-KTP berhasil disimpan!', 'success')
+  } catch (err: any) {
+    ktpPhotoUrl.value = prevUrl
+    showToast(err.response?.data?.message || 'Gagal mengunggah foto e-KTP.', 'error')
+  } finally {
+    isUploadingKtp.value = false
+  }
 }
 
 const openConfirm = () => {
